@@ -1,0 +1,372 @@
+package com.example.asus.mapstest;
+
+import android.Manifest;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.StrictMode;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.*;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Timer;
+import java.util.TimerTask;
+
+public class getUserLocation extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+
+    private GoogleMap mMap;
+    public double longitude;
+    public double latitude;
+    private JSONObject jObject;
+    private String xResult = "";
+    private LocationRequest mLocationRequest;
+    private GoogleApiClient mGoogleApiClient;
+    Location mLastLocation;
+    Marker mCurrLocationMarker;
+    //final Handler handler = new Handler();
+    LocationCallback mLocationCallback;
+    private Timer myTimer;
+    //Seusuaikan url dengan nama domain yang anda gunakan
+    //private String url = "http://satriaworld.000webhostapp.com/android/daftarmakanan.php";
+    private String url = "http://10.0.2.2/maps/listdata.php";
+    Button button;
+    Timer timer;
+    TimerTask timerTask;
+    final Handler handler = new Handler();
+    final Runnable r = new Runnable() {
+        public void run() {
+            handler.postDelayed(this, 1000);
+            button.performClick();
+        }
+    };
+    private transient LocationManager locationManager;
+    private transient LocationListener locationListener;
+
+    //final Handler handler = new Handler();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_get_user_location);
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
+        xResult = getRequest(url);
+        try {
+            parse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        //TextView txtResult = (TextView)findViewById(R.id.TextViewResult);
+
+
+        button = findViewById(R.id.btn1);
+        button.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                xResult = getRequest(url);
+                try {
+                    parse();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                LatLng latLng = new LatLng(latitude, longitude);
+                mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in.."));
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+                mMap.animateCamera(cameraUpdate);
+            }
+        });
+
+
+    }
+
+    public void startTimer() {
+        //set a new Timer
+        timer = new Timer();
+
+        //initialize the TimerTask's job
+        initializeTimerTask();
+        try {
+            updateLocation();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
+        timer.schedule(timerTask, 5000, 5000); //
+    }
+
+    public void stoptimertask(View v) {
+        //stop the timer, if it's not already null
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
+    public void initializeTimerTask() {
+
+        timerTask = new TimerTask() {
+            public void run() {
+
+                //use a handler to run a toast that shows the current timestamp
+                handler.post(new Runnable() {
+                    public void run() {
+                        //get the current timeStamp
+                        Calendar calendar = Calendar.getInstance();
+                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MMMM:yyyy HH:mm:ss a");
+                        final String strDate = simpleDateFormat.format(calendar.getTime());
+                        xResult = getRequest(url);
+                        try {
+                            parse();
+                            LatLng latLng = new LatLng(latitude, longitude);
+                            MarkerOptions markerOptions = new MarkerOptions();
+                            markerOptions.position(latLng);
+                            markerOptions.title("Current Position");
+                            markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+                            mCurrLocationMarker = mMap.addMarker(markerOptions);
+
+                            //move map camera
+                            mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                            mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        //show the toast
+                        int duration = Toast.LENGTH_SHORT;
+
+                        Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
+                        toast.show();
+                    }
+                });
+            }
+        };
+    }
+
+
+    public void updateLocation(){
+        xResult = getRequest(url);
+        try {
+            parse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        LatLng sydney = new LatLng(latitude, longitude);
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
+        mMap.animateCamera(cameraUpdate);
+        Toast.makeText(getApplicationContext(), latitude+"----"+longitude,Toast.LENGTH_LONG).show();
+
+
+    }
+
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        startTimer();
+
+    }
+
+    private void parse() throws Exception {
+        jObject = new JSONObject(xResult);
+        JSONArray menuitemArray = jObject.getJSONArray("lokasi");
+        String sret="";
+        for (int i = 0; i < menuitemArray.length(); i++) {
+
+            sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+" : ";
+            System.out.println(menuitemArray.getJSONObject(i).getString("longitude").toString());
+            System.out.println(menuitemArray.getJSONObject(i).getString("latitude").toString());
+            sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
+
+            longitude = Double.parseDouble(menuitemArray.getJSONObject(i).getString("longitude").toString());
+            latitude = Double.parseDouble(menuitemArray.getJSONObject(i).getString("latitude").toString());
+           // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
+            //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
+        }
+        //txtResult.setText(sret);
+    }
+    /**
+     * Method untuk Mengirimkan data kes erver
+     * event by button login diklik
+     *
+
+     */
+    public String getRequest(String Url){
+        String sret="";
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet(Url);
+        try{
+            HttpResponse response = client.execute(request);
+            sret =request(response);
+        }catch(Exception ex){
+            Toast.makeText(this,"Gagal "+ex, Toast.LENGTH_SHORT).show();
+        }
+        return sret;
+    }
+    /**
+     * Method untuk Menenrima data dari server
+     * @param response
+     * @return
+     */
+    public static String request(HttpResponse response){
+        String result = "";
+        try{
+            InputStream in = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder str = new StringBuilder();
+            String line = null;
+            while((line = reader.readLine()) != null){
+                str.append(line + "\n");
+            }
+            in.close();
+            result = str.toString();
+        }catch(Exception ex){
+            result = "Error";
+        }
+        return result;
+    }
+
+
+
+
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        xResult = getRequest(url);
+        try {
+            parse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mMap = googleMap;
+        myTimer = new Timer();
+        myTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                //updateLocation();
+              //  button.performClick();
+            }
+
+        }, 0, 1000);
+        LatLng sydney = new LatLng(latitude, longitude);
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
+        mMap.animateCamera(cameraUpdate);
+        //Toast.makeText(getApplicationContext(), latitude+"----"+longitude,Toast.LENGTH_LONG).show();
+
+
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+
+
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    private void startLocationUpdates() {
+       // mLastLocation = location;
+        if (mCurrLocationMarker != null) {
+            mCurrLocationMarker.remove();
+        }
+
+        //Place current location marker
+        xResult = getRequest(url);
+        try {
+            parse();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        LatLng latLng = new LatLng(latitude, longitude);
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng);
+        markerOptions.title("Current Position");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        mCurrLocationMarker = mMap.addMarker(markerOptions);
+
+        //move map camera
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
+
+        //stop location updates
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (com.google.android.gms.location.LocationListener) this);
+        }
+    }
+}
