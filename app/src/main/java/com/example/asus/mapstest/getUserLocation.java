@@ -69,7 +69,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private Timer myTimer;
     //Seusuaikan url dengan nama domain yang anda gunakan
     //private String url = "http://satriaworld.000webhostapp.com/android/daftarmakanan.php";
-    private String url = "http://10.0.2.2/maps/listdata.php";
+    private String url = "http://satriaworld.000webhostapp.com/maps/listdata.php";
     Button button;
     Timer timer;
     TimerTask timerTask;
@@ -194,7 +194,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             e.printStackTrace();
         }
 
-
+        mMap.clear();
         LatLng sydney = new LatLng(latitude, longitude);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
@@ -293,6 +293,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             }
 
         }, 0, 1000);
+        mMap.clear();
         LatLng sydney = new LatLng(latitude, longitude);
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);

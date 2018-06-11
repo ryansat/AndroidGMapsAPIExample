@@ -7,6 +7,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +29,20 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnMyLocationClickListener,
         OnMapReadyCallback, LocationListener,GoogleApiClient.ConnectionCallbacks,
@@ -45,6 +60,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
     private String provider;
     public float lat;
     public float lng;
+    public Locations loc;
     //private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
@@ -60,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         final Button button = findViewById(R.id.btn1);
         button.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                double longitude = lokasi.getLongitude();
+                /*double longitude = lokasi.getLongitude();
                 double latitude = lokasi.getLatitude();
                 //lokasi = location;
                 //Toast.makeText(getApplicationContext(), "Longitude : " + longitude + "\n Latitude : " + latitude, Toast.LENGTH_LONG).show();
@@ -71,6 +87,12 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
                 LatLng latLng = new LatLng(lat,lng);
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
                 mMap.animateCamera(cameraUpdate);
+                */
+                loc = new Locations();
+                loc.setId("1");
+                loc.setLatitude(String.valueOf(lat));
+                loc.setLongitude(String.valueOf(lng));
+                new HttpAsyncTaskPost().execute("http://satriaworld.000webhostapp.com/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
             }
         });
        // onMyLocationButtonClick();
@@ -91,9 +113,83 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
 
     }
 
+    public static String POST(String url, Locations loc){
+        InputStream inputStream = null;
+        String result = "";
+        try {
 
+            // 1. create HttpClient
+            HttpClient httpclient = new DefaultHttpClient();
+
+            // 2. make POST request to the given URL
+            HttpPost httpPost = new HttpPost(url);
+
+            String json = "";
+
+            // 3. build jsonObject
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.accumulate("title", loc.getIDS());
+            jsonObject.accumulate("author", loc.getLongitude());
+            jsonObject.accumulate("sinopsis", loc.getLatitude());
+
+
+
+            // 4. convert JSONObject to JSON to String
+            json = jsonObject.toString();
+
+            // 5. set json to StringEntity
+            StringEntity se = new StringEntity(json);
+
+            // 6. set httpPost Entity
+            httpPost.setEntity(se);
+
+            // 7. Set some headers to inform server about the type of the content
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            // 8. Execute POST request to the given URL
+            HttpResponse httpResponse = httpclient.execute(httpPost);
+
+            // 9. receive response as inputStream
+            inputStream = httpResponse.getEntity().getContent();
+
+            // 10. convert inputstream to string
+            if(inputStream != null)
+                result = convertInputStreamToString(inputStream);
+            else
+                result = "Did not work!";
+
+        } catch (Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());
+        }
+
+        // 11. return result
+        return result;
+    }
+
+    private class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... urls) {
+            return POST(urls[0], loc);
+        }
+        @Override
+        protected void onPostExecute(String result) {
+            Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+        }
+    }
     //@SuppressLint("MissingPermission")
     //@RequiresApi(api = Build.VERSION_CODES.M)
+
+
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+        inputStream.close();
+        return result;
+    }
 
     @Override
     public void onMapReady(GoogleMap map) {
@@ -111,6 +207,10 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         Log.i("Latitude", "Lattitude:" +lat);
         Log.i("Longitude", "Longitude:" +lng);
         LatLng latLng = new LatLng(lat,lng);
+        LatLng sydney = new LatLng(lat, lng);
+        mMap.clear();
+        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
+
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
         mMap.animateCamera(cameraUpdate);
     }
@@ -131,6 +231,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
                 break;
         }
     }
+
 
     @Override
     public void onMyLocationClick(@NonNull Location location) {
@@ -174,6 +275,13 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         Log.i("Longitude", "Longitude:" +lng);
         LatLng latLng = new LatLng(lat,lng);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+        loc = new Locations();
+        loc.setId("1");
+        loc.setLatitude(String.valueOf(lat));
+        loc.setLongitude(String.valueOf(lng));
+        new HttpAsyncTaskPost().execute("http://satriaworld.000webhostapp.com/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
+
+
     }
 
 
