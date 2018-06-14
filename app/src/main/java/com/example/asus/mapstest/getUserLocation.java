@@ -58,7 +58,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private GoogleMap mMap;
     public double longitude;
     public double latitude;
-    private JSONObject jObject;
+
     private String xResult = "";
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
@@ -69,7 +69,8 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private Timer myTimer;
     //Seusuaikan url dengan nama domain yang anda gunakan
     //private String url = "http://satriaworld.000webhostapp.com/android/daftarmakanan.php";
-    private String url = "http://satriaworld.000webhostapp.com/maps/listdata.php";
+    private String url = "http://satriaworlds.net/maps/listdata.php";
+    private JSONObject jObject;
     Button button;
     Timer timer;
     TimerTask timerTask;

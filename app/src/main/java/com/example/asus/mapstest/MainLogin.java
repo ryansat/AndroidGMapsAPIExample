@@ -3,6 +3,8 @@ package com.example.asus.mapstest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
@@ -29,9 +31,30 @@ import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
 
 import static android.Manifest.permission.READ_CONTACTS;
 
@@ -39,7 +62,15 @@ import static android.Manifest.permission.READ_CONTACTS;
  * A login screen that offers login via email/password.
  */
 public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Cursor> {
-
+    private String url = "http://satriaworlds.net/maps/listuser.php";
+    private JSONObject jObject;
+    private String xResult = "";
+    public String username,password;
+    Context context;
+    AlertDialog alertDialog;
+    MainLogin (Context ctx) {
+        context = ctx;
+    }
     /**
      * Id to identity READ_CONTACTS permission request.
      */
@@ -95,6 +126,55 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
         mProgressView = findViewById(R.id.login_progress);
     }
 
+    public String getRequest(String Url){
+        String sret="";
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet(Url);
+        try{
+            HttpResponse response = client.execute(request);
+            sret =request(response);
+        }catch(Exception ex){
+            Toast.makeText(this,"Gagal "+ex, Toast.LENGTH_SHORT).show();
+        }
+        return sret;
+    }
+
+    private void parse() throws Exception {
+        jObject = new JSONObject(xResult);
+        JSONArray menuitemArray = jObject.getJSONArray("lokasi");
+        String sret="";
+        for (int i = 0; i < menuitemArray.length(); i++) {
+
+            sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+" : ";
+            System.out.println(menuitemArray.getJSONObject(i).getString("username").toString());
+            System.out.println(menuitemArray.getJSONObject(i).getString("password").toString());
+            sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
+
+            username = menuitemArray.getJSONObject(i).getString("username").toString();
+            password = menuitemArray.getJSONObject(i).getString("password").toString();
+            // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
+            //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
+        }
+        //txtResult.setText(sret);
+    }
+
+    public static String request(HttpResponse response){
+        String result = "";
+        try{
+            InputStream in = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder str = new StringBuilder();
+            String line = null;
+            while((line = reader.readLine()) != null){
+                str.append(line + "\n");
+            }
+            in.close();
+            result = str.toString();
+        }catch(Exception ex){
+            result = "Error";
+        }
+        return result;
+    }
     private void populateAutoComplete() {
         if (!mayRequestContacts()) {
             return;
@@ -185,11 +265,46 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
         } else {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
+           // String type = params[0];
+            String login_url = "http://satriaworlds.net/maps/listuser.php";
+            try {
+                String user_name = email;
+                String pswd = password;
+                URL url = new URL(login_url);
+                HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                httpURLConnection.setRequestMethod("POST");
+                httpURLConnection.setDoOutput(true);
+                httpURLConnection.setDoInput(true);
+                OutputStream outputStream = httpURLConnection.getOutputStream();
+                BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                String post_data = URLEncoder.encode("user_name","UTF-8")+"="+URLEncoder.encode(user_name,"UTF-8")+"&"
+                        +URLEncoder.encode("password","UTF-8")+"="+URLEncoder.encode(password,"UTF-8");
+                bufferedWriter.write(post_data);
+                bufferedWriter.flush();
+                bufferedWriter.close();
+                outputStream.close();
+                InputStream inputStream = httpURLConnection.getInputStream();
+                BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
+                String result="";
+                String line="";
+                while((line = bufferedReader.readLine())!= null) {
+                    result += line;
+                }
+                bufferedReader.close();
+                inputStream.close();
+                httpURLConnection.disconnect();
+                //return result;
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             showProgress(true);
             mAuthTask = new UserLoginTask(email, password);
             mAuthTask.execute((Void) null);
-            Intent a = new Intent(this,Main_Menu.class);
-            startActivity(a);
+
+
+
         }
     }
 
@@ -330,24 +445,46 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
             return true;
         }
 
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                finish();
-            } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
-            }
-        }
 
         @Override
         protected void onCancelled() {
             mAuthTask = null;
             showProgress(false);
         }
+
+
+        @Override
+        protected void onPreExecute() {
+            alertDialog = new AlertDialog.Builder(context).create();
+            alertDialog.setTitle("Login Status");
+        }
+
+        @Override
+        protected void onProgressUpdate(Void... values) {
+            super.onProgressUpdate(values);
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            //alertDialog.setMessage(result);
+            //alertDialog.show();
+
+
+            mAuthTask = null;
+            showProgress(false);
+
+            if (success) {
+                Intent a = new Intent(null,Main_Menu.class);
+                startActivity(a);
+            } else {
+                mPasswordView.setError(getString(R.string.error_incorrect_password));
+                mPasswordView.requestFocus();
+            }
+
+
+        }
+
+
     }
 }
 

@@ -92,7 +92,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
                 loc.setId("1");
                 loc.setLatitude(String.valueOf(lat));
                 loc.setLongitude(String.valueOf(lng));
-                new HttpAsyncTaskPost().execute("http://satriaworld.000webhostapp.com/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
+                new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
             }
         });
        // onMyLocationButtonClick();
@@ -279,7 +279,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         loc.setId("1");
         loc.setLatitude(String.valueOf(lat));
         loc.setLongitude(String.valueOf(lng));
-        new HttpAsyncTaskPost().execute("http://satriaworld.000webhostapp.com/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
+        new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
 
 
     }
