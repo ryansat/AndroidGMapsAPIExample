@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -68,9 +69,7 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
     public String username,password;
     Context context;
     AlertDialog alertDialog;
-    MainLogin (Context ctx) {
-        context = ctx;
-    }
+    //context = ctx;
     /**
      * Id to identity READ_CONTACTS permission request.
      */
@@ -93,6 +92,7 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private String result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -268,6 +268,8 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
            // String type = params[0];
             String login_url = "http://satriaworlds.net/maps/listuser.php";
             try {
+                StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                StrictMode.setThreadPolicy(policy);
                 String user_name = email;
                 String pswd = password;
                 URL url = new URL(login_url);
@@ -285,7 +287,7 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
                 outputStream.close();
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
-                String result="";
+                result="";
                 String line="";
                 while((line = bufferedReader.readLine())!= null) {
                     result += line;
@@ -300,9 +302,12 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
                 e.printStackTrace();
             }
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password);
-            mAuthTask.execute((Void) null);
-
+            //mAuthTask = new UserLoginTask(email, password);
+            //mAuthTask.execute((Void) null);
+            if (result.equalsIgnoreCase("sukses")) {
+                Intent a = new Intent(this, Main_Menu.class);
+                startActivity(a);
+            }
 
 
         }

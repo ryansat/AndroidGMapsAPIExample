@@ -37,6 +37,10 @@
             android:value="AIzaSyC4mL8vrjfz9_2LPezfcbgtMylS3TjGrag" />
         <activity
             android:name=".Main_Menu"
+            android:label="@string/title_activity_main_login"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".MainLogin"
             android:label="@string/title_activity_main__menu"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
