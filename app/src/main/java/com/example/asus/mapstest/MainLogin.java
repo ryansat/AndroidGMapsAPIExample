@@ -279,7 +279,7 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
                 httpURLConnection.setDoInput(true);
                 OutputStream outputStream = httpURLConnection.getOutputStream();
                 BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
-                String post_data = URLEncoder.encode("user_name","UTF-8")+"="+URLEncoder.encode(user_name,"UTF-8")+"&"
+                String post_data = URLEncoder.encode("username","UTF-8")+"="+URLEncoder.encode(user_name,"UTF-8")+"&"
                         +URLEncoder.encode("password","UTF-8")+"="+URLEncoder.encode(password,"UTF-8");
                 bufferedWriter.write(post_data);
                 bufferedWriter.flush();
@@ -301,12 +301,20 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            showProgress(true);
+
             //mAuthTask = new UserLoginTask(email, password);
             //mAuthTask.execute((Void) null);
             if (result.equalsIgnoreCase("sukses")) {
+                showProgress(true);
+                Toast.makeText(getApplicationContext(), "Login Sukses",Toast.LENGTH_SHORT).show();
                 Intent a = new Intent(this, Main_Menu.class);
                 startActivity(a);
+            }
+            else
+            {
+                showProgress(false);
+                Toast.makeText(getApplicationContext(), "Login Gagal",Toast.LENGTH_SHORT).show();
+
             }
 
 
