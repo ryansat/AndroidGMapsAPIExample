@@ -35,10 +35,11 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyC4mL8vrjfz9_2LPezfcbgtMylS3TjGrag" />
+
         <activity
             android:name=".Main_Menu"
             android:label="@string/title_activity_main_login"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".MainLogin"
             android:label="@string/title_activity_main__menu"
@@ -61,7 +62,9 @@
         <activity
             android:name=".getUserLocation"
             android:label="@string/title_activity_get_user_location" />
-
+        <activity
+            android:name=".GetBoundMaps"
+            android:label="@string/title_activity_get_bound_maps"></activity>
     </application>
 
 </manifest>

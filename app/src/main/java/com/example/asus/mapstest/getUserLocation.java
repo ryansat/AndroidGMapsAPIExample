@@ -3,6 +3,7 @@ package com.example.asus.mapstest;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -35,6 +36,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -53,12 +55,18 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class getUserLocation extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.maps.android.PolyUtil;
+import java.util.ArrayList;
+import java.util.List;
 
+public class getUserLocation extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
+    private Marker locations;
     private GoogleMap mMap;
     public double longitude;
     public double latitude;
-
+    private LatLngBounds bounds;
+    LatLng citys;
     private String xResult = "";
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
@@ -114,8 +122,9 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                     e.printStackTrace();
                 }
                 LatLng latLng = new LatLng(latitude, longitude);
-                mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in.."));
-                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
+                //mMap.addMarker(new MarkerOptions().position(latLng).title("Marker in.."));
+
+               CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
                 mMap.animateCamera(cameraUpdate);
             }
         });
@@ -156,30 +165,54 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                 handler.post(new Runnable() {
                     public void run() {
                         //get the current timeStamp
+
                         Calendar calendar = Calendar.getInstance();
                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MMMM:yyyy HH:mm:ss a");
                         final String strDate = simpleDateFormat.format(calendar.getTime());
                         xResult = getRequest(url);
                         try {
+
                             parse();
+
                             LatLng latLng = new LatLng(latitude, longitude);
                             MarkerOptions markerOptions = new MarkerOptions();
-                            markerOptions.position(latLng);
+                            //markerOptions.position(latLng);
                             markerOptions.title("Current Position");
                             markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-                            mCurrLocationMarker = mMap.addMarker(markerOptions);
+                            //mCurrLocationMarker.remove();
+                            //mCurrLocationMarker = mMap.addMarker(markerOptions);
+                            mCurrLocationMarker.setPosition(latLng);
+                            List<LatLng> pts = new ArrayList<>();
+                            pts.add(new LatLng(-7.331122, 112.723060));
+                            pts.add(new LatLng(-7.3315231,112.7227359));
+                            pts.add(new LatLng(-7.332139, 112.724556));
+                            pts.add(new LatLng(-7.331027, 112.723987));
 
+                            bounds = new LatLngBounds(pts.get(2), pts.get(1));
+                            LatLng sydney = new LatLng(latitude, longitude);
+                            boolean contains1 = PolyUtil.containsLocation(latitude, longitude, pts, true);
+                            System.out.println("contains1: " + contains1);
+                            Toast.makeText(getApplicationContext(),"Didalam Zona: " + contains1,Toast.LENGTH_SHORT).show();
+
+                            boolean contains2 = bounds.contains(sydney);
+                            System.out.println("contains2: " + contains2);
+                            //Toast.makeText(getApplicationContext(),"contains2: " + contains2,Toast.LENGTH_SHORT).show();
+                            //mMap.clear();
                             //move map camera
                             mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                            mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+
+
+
+                            //mMap.animateCamera(CameraUpdateFactory.zoomTo(18));
+                            mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                         //show the toast
                         int duration = Toast.LENGTH_SHORT;
 
-                        Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
-                        toast.show();
+                       // Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
+                        //toast.show();
                     }
                 });
             }
@@ -194,14 +227,30 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         } catch (Exception e) {
             e.printStackTrace();
         }
-
+        Marker location;
         mMap.clear();
-        LatLng sydney = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
-        mMap.animateCamera(cameraUpdate);
-        Toast.makeText(getApplicationContext(), latitude+"----"+longitude,Toast.LENGTH_LONG).show();
+        List<LatLng> pts = new ArrayList<>();
+        pts.add(new LatLng(112.723724, -7.3312397));
+        pts.add(new LatLng(114.723724, -8.3312397));
+        pts.add(new LatLng(112.723724, -7.3312397));
+        pts.add(new LatLng(114.723724, -8.3312397));
 
+        bounds = new LatLngBounds(pts.get(2), pts.get(1));
+        LatLng sydney = new LatLng(latitude, longitude);
+        boolean contains1 = PolyUtil.containsLocation(latitude, longitude, pts, true);
+        System.out.println("contains1: " + contains1);
+
+        boolean contains2 = bounds.contains(sydney);
+        System.out.println("contains2: " + contains2);
+
+
+        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
+
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
+
+        mMap.animateCamera(cameraUpdate);
+        mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
 
     }
 
@@ -294,12 +343,33 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             }
 
         }, 0, 1000);
-        mMap.clear();
+        //mMap.clear();
+        List<LatLng> pts = new ArrayList<>();
+        pts.add(new LatLng(-7.331122, 112.723060));
+        pts.add(new LatLng(-7.3315231,112.7227359));
+        pts.add(new LatLng(-7.332139, 112.724556));
+        pts.add(new LatLng(-7.331027, 112.723987));
+
+        bounds = new LatLngBounds(pts.get(2), pts.get(1));
         LatLng sydney = new LatLng(latitude, longitude);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
+        boolean contains1 = PolyUtil.containsLocation(latitude, longitude, pts, true);
+        System.out.println("contains1: " + contains1);
+
+        boolean contains2 = bounds.contains(sydney);
+        System.out.println("contains2: " + contains2);
+        //LatLng latLng = new LatLng(latitude, longitude);
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(sydney);
+        markerOptions.title("Current Position");
+        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
+        //mCurrLocationMarker.remove();
+        mCurrLocationMarker = mMap.addMarker(markerOptions);
+
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
+
         mMap.animateCamera(cameraUpdate);
-        //Toast.makeText(getApplicationContext(), latitude+"----"+longitude,Toast.LENGTH_LONG).show();
+        mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
+        Toast.makeText(getApplicationContext(), latitude+"----"+longitude,Toast.LENGTH_SHORT).show();
 
 
 
@@ -355,20 +425,57 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         } catch (Exception e) {
             e.printStackTrace();
         }
-        LatLng latLng = new LatLng(latitude, longitude);
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_MAGENTA));
-        mCurrLocationMarker = mMap.addMarker(markerOptions);
 
-        //move map camera
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(11));
 
+        List<LatLng> pts = new ArrayList<>();
+        pts.add(new LatLng(-7.331122, 112.723060));
+        pts.add(new LatLng(-7.3315231,112.7227359));
+        pts.add(new LatLng(-7.332139, 112.724556));
+        pts.add(new LatLng(-7.331027, 112.723987));
+
+        bounds = new LatLngBounds(pts.get(3), pts.get(1));
+        LatLng sydney = new LatLng(latitude, longitude);
+        boolean contains1 = PolyUtil.containsLocation(latitude, longitude, pts, true);
+        System.out.println("contains1: " + contains1);
+        Toast.makeText(getApplicationContext(),"contains1: " + contains1,Toast.LENGTH_SHORT).show();
+
+        boolean contains2 = bounds.contains(sydney);
+        System.out.println("contains2: " + contains2);
+        Toast.makeText(getApplicationContext(),"contains2: " + contains2,Toast.LENGTH_SHORT).show();
+        //mMap.clear();
+        //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in.."));
+        //mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(sydney, 17);
+
+        mMap.animateCamera(cameraUpdate);
+        this.fixedCode();
         //stop location updates
         if (mGoogleApiClient != null) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, (com.google.android.gms.location.LocationListener) this);
         }
+
+
+    }
+
+    private void fixedCode() {
+
+        LatLng city = new LatLng(latitude, longitude);
+
+        List<LatLng> pts = new ArrayList<>();
+
+        pts.add(new LatLng(-7.331122, 112.723060));
+        pts.add(new LatLng(-7.3315231,112.7227359));
+        pts.add(new LatLng(-7.332139, 112.724556));
+        pts.add(new LatLng(-7.331027, 112.723987));
+
+        bounds = new LatLngBounds(pts.get(3), pts.get(1));
+
+        boolean contains1 = PolyUtil.containsLocation(latitude, longitude, pts, true);
+        //System.out.println("contains1: " + contains1);
+        Toast.makeText(getApplicationContext(),"contains1: " + contains1,Toast.LENGTH_SHORT).show();
+
+        boolean contains2 = bounds.contains(city);
+        System.out.println("contains2: " + contains2);
+        Toast.makeText(getApplicationContext(),"contains2: " + contains2,Toast.LENGTH_SHORT).show();
     }
 }

@@ -29,5 +29,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'org.jbundle.util.osgi.wrapped:org.jbundle.util.osgi.wrapped.org.apache.http.client:4.1.2'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.google.maps.android:android-maps-utils:0.5'
 
 }

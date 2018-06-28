@@ -88,7 +88,8 @@ public class Main_Menu extends AppCompatActivity
             Intent a = new Intent(this,getUserLocation.class);
             startActivity(a);
         } else if (id == R.id.nav_slideshow) {
-
+            Intent a = new Intent(this,GetBoundMaps.class);
+            startActivity(a);
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {
