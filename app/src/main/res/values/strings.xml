@@ -24,4 +24,15 @@
         completions."
     </string>
     <string name="title_activity_get_bound_maps">Map</string>
+    <string name="noti_channel_default" />
+    <string name="noti_channel_second" />
+    <string name="primary1_body">The contents</string>
+    <string name="body_message">Content</string>
+    <string name="secondary1_body" />
+    <string name="primary2_body">Second Notification for Primary Channel</string>
+    <string name="secondary2_body">Second Notification for Secondary Channel</string>
+    <string name="message">The Content</string>
+    <string name="messages">The Content</string>
+
+
 </resources>
