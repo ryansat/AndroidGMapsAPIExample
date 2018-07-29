@@ -2,6 +2,7 @@ package com.example.asus.mapstest;
 
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -17,7 +18,7 @@ import android.view.MenuItem;
 import android.widget.EditText;
 
 public class Main_Menu extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener,MapsFragment.OnFragmentInteractionListener {
 
     public String userid;
     EditText ed;
@@ -97,22 +98,21 @@ public class Main_Menu extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
-
-            MapsFragment mapsFragment = new MapsFragment();
-            android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
-            manager.beginTransaction().replace(R.id.relativelayout, mapsFragment).commit();
-            /*
             Intent a = new Intent(this,MapsActivity.class);
             userid = getIntent().getStringExtra("USERID");
             a.putExtra("USERID", userid);
-            startActivity(a);*/
+            startActivity(a);
         } else if (id == R.id.nav_gallery) {
-            Intent a = new Intent(this,getUserLocation.class);
+           /* Intent a = new Intent(this,getUserLocation.class);
+            startActivity(a);*/
+            Intent a = new Intent(this,getUsers.class);
             startActivity(a);
         } else if (id == R.id.nav_slideshow) {
             Intent a = new Intent(this,GetBoundMaps.class);
             startActivity(a);
         } else if (id == R.id.nav_manage) {
+            Intent a = new Intent(this,getUserLocation.class);
+            startActivity(a);
 
         } else if (id == R.id.nav_share) {
 
@@ -123,5 +123,10 @@ public class Main_Menu extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }

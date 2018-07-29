@@ -14,20 +14,26 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -66,7 +72,7 @@ import static com.example.asus.mapstest.NotificationHelper.PRIMARY_CHANNEL;
  * Use the {@link MapsFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MapsFragment extends Fragment implements OnMapReadyCallback {
+public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapLoadedCallback {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -120,7 +126,10 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     private NotificationManager manager;
     private transient LocationManager locationManager;
     private transient LocationListener locationListener;
-
+    MapView mMapView;
+    private GoogleMap googleMap;
+    getUsers get;
+    public String id;
 
     public MapsFragment() {
         // Required empty public constructor
@@ -147,10 +156,16 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //setContentView(R.layout.activity_main_login);
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        id = getArguments().getString("userid");
+
+
     }
 
     @Override
@@ -158,10 +173,272 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_maps, container, false);
-        SupportMapFragment mapsfragment = (SupportMapFragment)getFragmentManager().findFragmentById(R.id.map1);
-        mapsfragment.getMapAsync(this);
+
+        mMapView = (MapView) v.findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+
+        mMapView.onResume(); // needed to get the map to display immediately
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            private void parse() throws Exception {
+                jObject = new JSONObject(xResult);
+                JSONArray menuitemArray = jObject.getJSONArray("lokasi");
+                String sret="";
+                for (int i = 0; i < menuitemArray.length(); i++) {
+
+                    sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+" : ";
+                    System.out.println(menuitemArray.getJSONObject(i).getString("longitude").toString());
+                    System.out.println(menuitemArray.getJSONObject(i).getString("latitude").toString());
+                    System.out.println(menuitemArray.getJSONObject(i).getString("userid").toString());
+                    System.out.println(menuitemArray.getJSONObject(i).getString("jamaah").toString());
+                    sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
+                    sret +=menuitemArray.getJSONObject(i).getString("userid").toString()+"\n";
+                    sret +=menuitemArray.getJSONObject(i).getString("jamaah").toString()+"\n";
+
+                    longitude[i] = Double.parseDouble(menuitemArray.getJSONObject(i).getString("longitude").toString());
+                    latitude[i] = Double.parseDouble(menuitemArray.getJSONObject(i).getString("latitude").toString());
+                    user[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("userid").toString());
+                    jamaah[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("jamaah").toString());
+                    jeniskelamin[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("jeniskelamin").toString());
+                    // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
+                    //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
+                }
+                //txtResult.setText(sret);
+            }
+
+            public String getRequest(String Url){
+                String sret="";
+                HttpClient client = new DefaultHttpClient();
+                HttpGet request = new HttpGet(Url);
+                try{
+                    HttpResponse response = client.execute(request);
+                    sret =request(response);
+                }catch(Exception ex){
+                    //Toast.makeText(this,"Gagal ", Toast.LENGTH_SHORT).show();
+                }
+                return sret;
+            }
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                xResult = getRequest(url);
+                try {
+                    parse();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                mMap = googleMap;
+                myTimer = new Timer();
+                myTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        //updateLocation();
+                        //  button.performClick();
+                    }
+
+                }, 0, 1000);
+                mMap.clear();
+                List<LatLng> pts = new ArrayList<>();
+
+                pts.add(new LatLng(21.426717,39.8170513 ));
+                pts.add(new LatLng(21.426954, 39.830096));
+                pts.add(new LatLng(21.421716, 39.832523));
+                pts.add(new LatLng(21.422560, 39.821529));
+
+                bounds = new LatLngBounds(pts.get(2), pts.get(1));
+                LatLng mecca = new LatLng(latitude[0],longitude[0]);
+
+
+                // sydney[i] = new LatLng(latitude[0], longitude[0]);
+                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
+                System.out.println("contains1: " + contains1);
+
+
+                MarkerOptions markerOptions = new MarkerOptions() ;
+                ArrayList<LatLng> latlngs = new ArrayList<>();
+                for (int i = 0; i < total; i ++) {
+                    latlngs.add(new LatLng(latitude[i],longitude[i]));
+
+
+                }
+
+                int ids = Integer.parseInt(id);
+                ids = ids-1;
+                for (int i = 0; i < total; i ++) {
+                    LatLng point = new LatLng(latitude[i],longitude[i]);
+                    markerOptions.position(point);
+                    markerOptions.title(user[i]);
+                    markerOptions.snippet(jamaah[i]);
+                    if (jeniskelamin[i].equalsIgnoreCase("Pria")){
+                        mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
+                        //mMap.addMarker(markerOptions);
+                    }
+                    else
+                    {
+                        mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
+                    }
+                }
+
+                mecca  = new LatLng(latitude[ids],longitude[ids]);
+                mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(mecca, 17);
+                mMap.animateCamera(cameraUpdate);
+                // mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
+            }
+
+            public void initializeTimerTask() {
+
+                timerTask = new TimerTask() {
+                    public void run() {
+
+                        //use a handler to run a toast that shows the current timestamp
+                        handler.post(new Runnable() {
+                            public void run() {
+                                //get the current timeStamp
+
+                                Calendar calendar = Calendar.getInstance();
+                                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MMMM:yyyy HH:mm:ss a");
+                                final String strDate = simpleDateFormat.format(calendar.getTime());
+                                xResult = getRequest(url);
+                                try {
+
+                                    parse();
+
+                                    Marker location;
+                                    mMap.clear();
+                                    List<LatLng> pts = new ArrayList<>();
+                            /*pts.add(new LatLng(112.723724, -7.3312397));
+                            pts.add(new LatLng(114.723724, -8.3312397));
+                            pts.add(new LatLng(112.723724, -7.3312397));
+                            pts.add(new LatLng(114.723724, -8.3312397));
+                            */
+                            /*
+                            pts.add(new LatLng(21.426717,39.8170513 ));
+                            pts.add(new LatLng(21.426954, 39.830096));
+                            pts.add(new LatLng(21.421716, 39.832523));
+                            pts.add(new LatLng(21.422560, 39.821529));*/
+                                    pts.add(new LatLng(21.426117,39.8170513 ));
+                                    pts.add(new LatLng(21.426954, 39.830096));
+                                    pts.add(new LatLng(21.421716, 39.832523));
+                                    pts.add(new LatLng(21.422560, 39.821529));
+
+
+                                    bounds = new LatLngBounds(pts.get(2), pts.get(1));
+                                    LatLng mecca = new LatLng(latitude[0],longitude[0]);
+
+
+                                    //bounds = new LatLngBounds(pts.get(2), pts.get(1));
+                                    //LatLng mecca = new LatLng(latitude[0],longitude[0]);
+
+
+                                    // sydney[i] = new LatLng(latitude[0], longitude[0]);
+                            /*for (int i = 0 ; i < total; i++) {
+                                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
+                                System.out.println("contains1: " + contains1);
+                            }*/
+
+                                    MarkerOptions markerOptions = new MarkerOptions() ;
+                                    ArrayList<LatLng> latlngs = new ArrayList<>();
+                                    mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.GREEN));
+
+                                    for (int i = 0; i < total; i ++) {
+                                        LatLng point = new LatLng(latitude[i],longitude[i]);
+                                        markerOptions.position(point);
+                                        markerOptions.title(user[i]);
+                                        markerOptions.snippet(jamaah[i]);
+                                        if (jeniskelamin[i].equalsIgnoreCase("Pria")){
+                                            mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
+                                            //mMap.addMarker(markerOptions);
+                                        }
+                                        else
+                                        {
+                                            mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
+                                        }
+                                    }
+
+                                    for (int i = 0; i < total; i ++) {
+                                        boolean contains1 = PolyUtil.containsLocation(latitude[i], longitude[i], pts, true);
+                                        latlngs.add(new LatLng(latitude[i],longitude[i]));
+                                        mecca  = new LatLng(latitude[i],longitude[i]);
+                                        //Toast.makeText(getApplicationContext(),"Lokasi User: "+ jamaah[i]+ ", " + contains1,Toast.LENGTH_SHORT).show();
+                                        String idChannel = "my_channel_01";
+                                        Intent mainIntent;
+
+                                        mainIntent = new Intent(getContext(), LauncherActivity.class);
+
+                                        PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, mainIntent, 0);
+
+                                        NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+                                        NotificationChannel mChannel = null;
+                                        // The id of the channel.
+
+                                        int importance = NotificationManager.IMPORTANCE_HIGH;
+
+                                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), PRIMARY_CHANNEL);
+
+                                        if (contains1 == false) {
+                                            builder.setContentTitle(getContext().getString(R.string.app_name))
+                                                    .setSmallIcon(R.drawable.person)
+                                                    .setContentIntent(pendingIntent)
+                                                    .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
+                                        }
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                            mChannel = new NotificationChannel(PRIMARY_CHANNEL, getContext().getString(R.string.app_name), importance);
+                                            // Configure the notification channel.
+                                            mChannel.setDescription(("Notif"));
+                                            mChannel.enableLights(true);
+                                            mChannel.setLightColor(Color.WHITE);
+                                            mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                                            mNotificationManager.createNotificationChannel(mChannel);
+                                        } else {
+                                            builder.setContentTitle(getContext().getString(R.string.app_name))
+                                                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                                    //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
+                                                    .setVibrate(new long[]{100, 250})
+                                                    .setLights(Color.YELLOW, 500, 5000)
+                                                    .setAutoCancel(true);
+                                        }
+                                        mNotificationManager.notify(i, builder.build());
+
+
+
+                                    }
+                                    mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.GREEN));
+                                    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(21.426717,39.8170513 ), 17);
+                                    mMap.animateCamera(cameraUpdate);
+
+
+
+
+
+                                    //mMap.clear();
+                                    //move map camera
+
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                //show the toast
+                                int duration = Toast.LENGTH_SHORT;
+
+                                // Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
+                                //toast.show();
+                            }
+                        });
+                    }
+                };
+            }
+        });
+
         return v;
-        //return inflater.inflate(R.layout.fragment_maps, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -205,165 +482,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         return result;
     }
 
-    public void startTimer() {
-        //set a new Timer
-        timer = new Timer();
-
-        //initialize the TimerTask's job
-        initializeTimerTask();
-        try {
-            updateLocation();
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-        //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
-        timer.schedule(timerTask, 1000, 5000); //
-    }
-
-    public void initializeTimerTask() {
-
-        timerTask = new TimerTask() {
-            public void run() {
-
-                //use a handler to run a toast that shows the current timestamp
-                handler.post(new Runnable() {
-                    public void run() {
-                        //get the current timeStamp
-
-                        Calendar calendar = Calendar.getInstance();
-                        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MMMM:yyyy HH:mm:ss a");
-                        final String strDate = simpleDateFormat.format(calendar.getTime());
-                        xResult = getRequest(url);
-                        try {
-
-                            parse();
-
-                            Marker location;
-                            mMap.clear();
-                            List<LatLng> pts = new ArrayList<>();
-                            /*pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            */
-                            /*
-                            pts.add(new LatLng(21.426717,39.8170513 ));
-                            pts.add(new LatLng(21.426954, 39.830096));
-                            pts.add(new LatLng(21.421716, 39.832523));
-                            pts.add(new LatLng(21.422560, 39.821529));*/
-                            pts.add(new LatLng(21.426117,39.8170513 ));
-                            pts.add(new LatLng(21.426954, 39.830096));
-                            pts.add(new LatLng(21.421716, 39.832523));
-                            pts.add(new LatLng(21.422560, 39.821529));
-
-
-                            bounds = new LatLngBounds(pts.get(2), pts.get(1));
-                            LatLng mecca = new LatLng(latitude[0],longitude[0]);
-
-
-                            //bounds = new LatLngBounds(pts.get(2), pts.get(1));
-                            //LatLng mecca = new LatLng(latitude[0],longitude[0]);
-
-
-                            // sydney[i] = new LatLng(latitude[0], longitude[0]);
-                            /*for (int i = 0 ; i < total; i++) {
-                                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-                                System.out.println("contains1: " + contains1);
-                            }*/
-
-                            MarkerOptions markerOptions = new MarkerOptions() ;
-                            ArrayList<LatLng> latlngs = new ArrayList<>();
-                            mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.GREEN));
-
-                            for (int i = 0; i < total; i ++) {
-                                LatLng point = new LatLng(latitude[i],longitude[i]);
-                                markerOptions.position(point);
-                                markerOptions.title(user[i]);
-                                markerOptions.snippet(jamaah[i]);
-                                if (jeniskelamin[i].equalsIgnoreCase("Pria")){
-                                    mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
-                                    //mMap.addMarker(markerOptions);
-                                }
-                                else
-                                {
-                                    mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
-                                }
-                            }
-
-                            for (int i = 0; i < total; i ++) {
-                                boolean contains1 = PolyUtil.containsLocation(latitude[i], longitude[i], pts, true);
-                                latlngs.add(new LatLng(latitude[i],longitude[i]));
-                                mecca  = new LatLng(latitude[i],longitude[i]);
-                                //Toast.makeText(getApplicationContext(),"Lokasi User: "+ jamaah[i]+ ", " + contains1,Toast.LENGTH_SHORT).show();
-                                String idChannel = "my_channel_01";
-                                Intent mainIntent;
-
-                                mainIntent = new Intent(getContext(), LauncherActivity.class);
-
-                                PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, mainIntent, 0);
-
-                                NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
-
-                                NotificationChannel mChannel = null;
-                                // The id of the channel.
-
-                                int importance = NotificationManager.IMPORTANCE_HIGH;
-
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), PRIMARY_CHANNEL);
-
-                                if (contains1 == false) {
-                                    builder.setContentTitle(getContext().getString(R.string.app_name))
-                                            .setSmallIcon(R.drawable.person)
-                                            .setContentIntent(pendingIntent)
-                                            .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
-                                }
-
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    mChannel = new NotificationChannel(PRIMARY_CHANNEL, getContext().getString(R.string.app_name), importance);
-                                    // Configure the notification channel.
-                                    mChannel.setDescription(("Notif"));
-                                    mChannel.enableLights(true);
-                                    mChannel.setLightColor(Color.WHITE);
-                                    mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-                                    mNotificationManager.createNotificationChannel(mChannel);
-                                } else {
-                                    builder.setContentTitle(getContext().getString(R.string.app_name))
-                                            .setPriority(NotificationCompat.PRIORITY_HIGH)
-                                            //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
-                                            .setVibrate(new long[]{100, 250})
-                                            .setLights(Color.YELLOW, 500, 5000)
-                                            .setAutoCancel(true);
-                                }
-                                mNotificationManager.notify(i, builder.build());
 
 
 
-                            }
-                            mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.GREEN));
-                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(21.426717,39.8170513 ), 17);
-                            mMap.animateCamera(cameraUpdate);
-
-
-
-
-
-                            //mMap.clear();
-                            //move map camera
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        //show the toast
-                        int duration = Toast.LENGTH_SHORT;
-
-                        // Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
-                        //toast.show();
-                    }
-                });
-            }
-        };
-    }
 
 
     public void updateLocation(){
@@ -378,16 +499,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         Marker location;
         mMap.clear();
         List<LatLng> pts = new ArrayList<>();
-                            /*pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            */
-                            /*
-                            pts.add(new LatLng(21.426717,39.8170513 ));
-                            pts.add(new LatLng(21.426954, 39.830096));
-                            pts.add(new LatLng(21.421716, 39.832523));
-                            pts.add(new LatLng(21.422560, 39.821529));*/
+
         pts.add(new LatLng(21.426117,39.8170513 ));
         pts.add(new LatLng(21.426954, 39.830096));
         pts.add(new LatLng(21.421716, 39.832523));
@@ -398,15 +510,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         LatLng mecca = new LatLng(latitude[0],longitude[0]);
 
 
-        //bounds = new LatLngBounds(pts.get(2), pts.get(1));
-        //LatLng mecca = new LatLng(latitude[0],longitude[0]);
-
-
-        // sydney[i] = new LatLng(latitude[0], longitude[0]);
-                            /*for (int i = 0 ; i < total; i++) {
-                                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-                                System.out.println("contains1: " + contains1);
-                            }*/
 
         MarkerOptions markerOptions = new MarkerOptions() ;
         ArrayList<LatLng> latlngs = new ArrayList<>();
@@ -588,10 +691,55 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
                 mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
             }
         }
-        mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.BLUE));
+        mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.BLACK));
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(mecca, 17);
         mMap.animateCamera(cameraUpdate);
         // mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
+    }
+
+
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        //startTimer();
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
+
+    @Override
+    public void onMapLoaded() {
+
     }
 
     /**
@@ -608,4 +756,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
+
+
 }

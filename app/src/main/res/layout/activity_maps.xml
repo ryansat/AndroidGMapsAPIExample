@@ -12,7 +12,7 @@
         android:id="@+id/btn1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center|bottom"
+        android:layout_gravity="bottom"
         android:text="Send Location"
         android:padding="10dp"
         android:layout_marginTop="20dp"

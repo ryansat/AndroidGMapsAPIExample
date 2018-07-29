@@ -46,7 +46,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -62,7 +61,9 @@
         <activity
             android:name=".RegisterUser"
             android:label="@string/title_activity_register_user"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".getUsers"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

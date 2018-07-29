@@ -198,16 +198,6 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                             Marker location;
                             mMap.clear();
                             List<LatLng> pts = new ArrayList<>();
-                            /*pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            */
-                            /*
-                            pts.add(new LatLng(21.426717,39.8170513 ));
-                            pts.add(new LatLng(21.426954, 39.830096));
-                            pts.add(new LatLng(21.421716, 39.832523));
-                            pts.add(new LatLng(21.422560, 39.821529));*/
                             pts.add(new LatLng(21.426117,39.8170513 ));
                             pts.add(new LatLng(21.426954, 39.830096));
                             pts.add(new LatLng(21.421716, 39.832523));
@@ -217,16 +207,6 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                             bounds = new LatLngBounds(pts.get(2), pts.get(1));
                             LatLng mecca = new LatLng(latitude[0],longitude[0]);
 
-
-                            //bounds = new LatLngBounds(pts.get(2), pts.get(1));
-                            //LatLng mecca = new LatLng(latitude[0],longitude[0]);
-
-
-                            // sydney[i] = new LatLng(latitude[0], longitude[0]);
-                            /*for (int i = 0 ; i < total; i++) {
-                                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-                                System.out.println("contains1: " + contains1);
-                            }*/
 
                             MarkerOptions markerOptions = new MarkerOptions() ;
                             ArrayList<LatLng> latlngs = new ArrayList<>();
