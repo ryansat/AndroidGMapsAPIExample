@@ -8,4 +8,26 @@
     tools:context=".Main_Menu"
     tools:showIn="@layout/app_bar_main__menu">
 
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/textView2"
+        android:layout_marginTop="61dp"
+        android:ems="10"
+        android:hint="User ID"
+        android:inputType="textPersonName"
+        android:visibility="invisible" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="31dp"
+        android:layout_marginTop="29dp"
+        android:text="UserID"
+        android:visibility="invisible" />
 </RelativeLayout>

@@ -1,5 +1,6 @@
 package com.example.asus.mapstest;
 
+import android.app.FragmentManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -13,9 +14,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
 
 public class Main_Menu extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    public String userid;
+    EditText ed;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +46,12 @@ public class Main_Menu extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        ed = findViewById(R.id.editText);
+        userid = getIntent().getStringExtra("USERID");
+        ed.setText(userid);
+
+
     }
 
     @Override
@@ -74,6 +85,10 @@ public class Main_Menu extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
+    public void logout(View v){
+        Intent a = new Intent(this,MainLogin.class);
+        startActivity(a);
+    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -82,8 +97,15 @@ public class Main_Menu extends AppCompatActivity
         int id = item.getItemId();
 
         if (id == R.id.nav_camera) {
+
+            MapsFragment mapsFragment = new MapsFragment();
+            android.support.v4.app.FragmentManager manager = getSupportFragmentManager();
+            manager.beginTransaction().replace(R.id.relativelayout, mapsFragment).commit();
+            /*
             Intent a = new Intent(this,MapsActivity.class);
-            startActivity(a);
+            userid = getIntent().getStringExtra("USERID");
+            a.putExtra("USERID", userid);
+            startActivity(a);*/
         } else if (id == R.id.nav_gallery) {
             Intent a = new Intent(this,getUserLocation.class);
             startActivity(a);

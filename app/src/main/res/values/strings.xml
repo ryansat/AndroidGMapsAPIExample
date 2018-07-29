@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">MapsTest</string>
+    <string name="app_name">Jamaah GPS Tracker</string>
     <string name="title_activity_maps">Map</string>
-    <string name="title_activity_main__menu">Main_Menu</string>
+    <string name="title_activity_main__menu">Jamaah GPS Tracker</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -33,6 +33,10 @@
     <string name="secondary2_body">Second Notification for Secondary Channel</string>
     <string name="message">The Content</string>
     <string name="messages">The Content</string>
+    <string name="title_activity_register_user">RegisterUser</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 
 </resources>

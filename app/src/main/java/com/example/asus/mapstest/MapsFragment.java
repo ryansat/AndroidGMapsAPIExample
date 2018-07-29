@@ -1,7 +1,6 @@
 package com.example.asus.mapstest;
 
 import android.app.LauncherActivity;
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,25 +10,21 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.StrictMode;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -40,6 +35,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.maps.android.PolyUtil;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -47,25 +44,40 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
-import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.maps.android.PolyUtil;
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.example.asus.mapstest.NotificationHelper.PRIMARY_CHANNEL;
 
 
-public class getUserLocation extends FragmentActivity implements OnMapReadyCallback, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMapLoadedCallback {
+/**
+ * A simple {@link Fragment} subclass.
+ * Activities that contain this fragment must implement the
+ * {@link MapsFragment.OnFragmentInteractionListener} interface
+ * to handle interaction events.
+ * Use the {@link MapsFragment#newInstance} factory method to
+ * create an instance of this fragment.
+ */
+public class MapsFragment extends Fragment implements OnMapReadyCallback {
+    // TODO: Rename parameter arguments, choose names that match
+    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
+    private static final String ARG_PARAM1 = "param1";
+    private static final String ARG_PARAM2 = "param2";
+
+    // TODO: Rename and change types of parameters
+    private String mParam1;
+    private String mParam2;
+
+    private OnFragmentInteractionListener mListener;
+
     private Marker locations;
     private NotificationHelper noti;
     private GoogleMap mMap;
@@ -109,45 +121,88 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private transient LocationManager locationManager;
     private transient LocationListener locationListener;
 
-    //final Handler handler = new Handler();
+
+    public MapsFragment() {
+        // Required empty public constructor
+    }
+
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param param1 Parameter 1.
+     * @param param2 Parameter 2.
+     * @return A new instance of fragment MapsFragment.
+     */
+    // TODO: Rename and change types and number of parameters
+    public static MapsFragment newInstance(String param1, String param2) {
+        MapsFragment fragment = new MapsFragment();
+        Bundle args = new Bundle();
+        args.putString(ARG_PARAM1, param1);
+        args.putString(ARG_PARAM2, param2);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_get_user_location);
-        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-        StrictMode.setThreadPolicy(policy);
-        xResult = getRequest(url);
-        try {
-            parse();
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (getArguments() != null) {
+            mParam1 = getArguments().getString(ARG_PARAM1);
+            mParam2 = getArguments().getString(ARG_PARAM2);
         }
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        //TextView txtResult = (TextView)findViewById(R.id.TextViewResult);
-
-
-
     }
 
-    private NotificationManager getManager() {
-        if (manager == null) {
-            manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View v = inflater.inflate(R.layout.fragment_maps, container, false);
+        SupportMapFragment mapsfragment = (SupportMapFragment)getFragmentManager().findFragmentById(R.id.map1);
+        mapsfragment.getMapAsync(this);
+        return v;
+        //return inflater.inflate(R.layout.fragment_maps, container, false);
+    }
+
+    // TODO: Rename method, update argument and hook method into UI event
+    public void onButtonPressed(Uri uri) {
+        if (mListener != null) {
+            mListener.onFragmentInteraction(uri);
         }
-        return manager;
     }
 
-    private String getTitlePrimaryText() {
-        // return titlePrimary.getText().toString();
-        return notif;
-
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        if (context instanceof OnFragmentInteractionListener) {
+            mListener = (OnFragmentInteractionListener) context;
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
     }
 
-    private String getTitleSecondaryText() {
-        //     return titleSecondary.getText().toString();
-        return notif;
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+    public static String request(HttpResponse response){
+        String result = "";
+        try{
+            InputStream in = response.getEntity().getContent();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+            StringBuilder str = new StringBuilder();
+            String line = null;
+            while((line = reader.readLine()) != null){
+                str.append(line + "\n");
+            }
+            in.close();
+            result = str.toString();
+        }catch(Exception ex){
+            result = "Error";
+        }
+        return result;
     }
 
     public void startTimer() {
@@ -165,17 +220,6 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         //schedule the timer, after the first 5000ms the TimerTask will run every 10000ms
         timer.schedule(timerTask, 1000, 5000); //
     }
-
-    public void stoptimertask(View v) {
-        //stop the timer, if it's not already null
-        if (timer != null) {
-            timer.cancel();
-            timer = null;
-        }
-    }
-
-
-
 
     public void initializeTimerTask() {
 
@@ -238,12 +282,12 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                                 markerOptions.title(user[i]);
                                 markerOptions.snippet(jamaah[i]);
                                 if (jeniskelamin[i].equalsIgnoreCase("Pria")){
-                                mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
-                                //mMap.addMarker(markerOptions);
+                                    mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
+                                    //mMap.addMarker(markerOptions);
                                 }
                                 else
                                 {
-                                 mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
+                                    mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
                                 }
                             }
 
@@ -255,28 +299,28 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                                 String idChannel = "my_channel_01";
                                 Intent mainIntent;
 
-                                mainIntent = new Intent(getApplicationContext(), LauncherActivity.class);
+                                mainIntent = new Intent(getContext(), LauncherActivity.class);
 
-                                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, mainIntent, 0);
+                                PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, mainIntent, 0);
 
-                                NotificationManager mNotificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                                NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
                                 NotificationChannel mChannel = null;
                                 // The id of the channel.
 
                                 int importance = NotificationManager.IMPORTANCE_HIGH;
 
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), PRIMARY_CHANNEL);
+                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), PRIMARY_CHANNEL);
 
                                 if (contains1 == false) {
-                                    builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                                    builder.setContentTitle(getContext().getString(R.string.app_name))
                                             .setSmallIcon(R.drawable.person)
                                             .setContentIntent(pendingIntent)
                                             .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
                                 }
 
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    mChannel = new NotificationChannel(PRIMARY_CHANNEL, getApplicationContext().getString(R.string.app_name), importance);
+                                    mChannel = new NotificationChannel(PRIMARY_CHANNEL, getContext().getString(R.string.app_name), importance);
                                     // Configure the notification channel.
                                     mChannel.setDescription(("Notif"));
                                     mChannel.enableLights(true);
@@ -284,7 +328,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                                     mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
                                     mNotificationManager.createNotificationChannel(mChannel);
                                 } else {
-                                    builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                                    builder.setContentTitle(getContext().getString(R.string.app_name))
                                             .setPriority(NotificationCompat.PRIORITY_HIGH)
                                             //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
                                             .setVibrate(new long[]{100, 250})
@@ -313,15 +357,13 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                         //show the toast
                         int duration = Toast.LENGTH_SHORT;
 
-                       // Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
+                        // Toast toast = Toast.makeText(getApplicationContext(), longitude+"--"+latitude, duration);
                         //toast.show();
                     }
                 });
             }
         };
     }
-
-
 
 
     public void updateLocation(){
@@ -393,28 +435,28 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             String idChannel = "my_channel_01";
             Intent mainIntent;
 
-            mainIntent = new Intent(getApplicationContext(), LauncherActivity.class);
+            mainIntent = new Intent(getContext(), LauncherActivity.class);
 
-            PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, mainIntent, 0);
+            PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, mainIntent, 0);
 
-            NotificationManager mNotificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
 
             NotificationChannel mChannel = null;
             // The id of the channel.
 
             int importance = NotificationManager.IMPORTANCE_HIGH;
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), PRIMARY_CHANNEL);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), PRIMARY_CHANNEL);
 
             if (contains1 == false) {
-                builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                builder.setContentTitle(getContext().getString(R.string.app_name))
                         .setSmallIcon(R.drawable.person)
                         .setContentIntent(pendingIntent)
                         .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mChannel = new NotificationChannel(PRIMARY_CHANNEL, getApplicationContext().getString(R.string.app_name), importance);
+                mChannel = new NotificationChannel(PRIMARY_CHANNEL, getContext().getString(R.string.app_name), importance);
                 // Configure the notification channel.
                 mChannel.setDescription(("Notif"));
                 mChannel.enableLights(true);
@@ -422,7 +464,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                 mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
                 mNotificationManager.createNotificationChannel(mChannel);
             } else {
-                builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                builder.setContentTitle(getContext().getString(R.string.app_name))
                         .setPriority(NotificationCompat.PRIORITY_HIGH)
                         //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
                         .setVibrate(new long[]{100, 250})
@@ -446,14 +488,6 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
     }
 
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        startTimer();
-
-    }
-
     private void parse() throws Exception {
         jObject = new JSONObject(xResult);
         JSONArray menuitemArray = jObject.getJSONArray("lokasi");
@@ -474,17 +508,12 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             user[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("userid").toString());
             jamaah[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("jamaah").toString());
             jeniskelamin[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("jeniskelamin").toString());
-           // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
+            // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
             //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
         }
         //txtResult.setText(sret);
     }
-    /**
-     * Method untuk Mengirimkan data kes erver
-     * event by button login diklik
-     *
 
-     */
     public String getRequest(String Url){
         String sret="";
         HttpClient client = new DefaultHttpClient();
@@ -493,41 +522,10 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             HttpResponse response = client.execute(request);
             sret =request(response);
         }catch(Exception ex){
-            Toast.makeText(this,"Gagal "+ex, Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this,"Gagal ", Toast.LENGTH_SHORT).show();
         }
         return sret;
     }
-    /**
-     * Method untuk Menenrima data dari server
-     * @param response
-     * @return
-     */
-    public static String request(HttpResponse response){
-        String result = "";
-        try{
-            InputStream in = response.getEntity().getContent();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-            StringBuilder str = new StringBuilder();
-            String line = null;
-            while((line = reader.readLine()) != null){
-                str.append(line + "\n");
-            }
-            in.close();
-            result = str.toString();
-        }catch(Exception ex){
-            result = "Error";
-        }
-        return result;
-    }
-
-
-    public void onMapLoaded() {
-        mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds,170));
-
-        this.updateLocation();
-        //Toast.makeText(getApplicationContext(),"Maps",Toast.LENGTH_LONG);
-    }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -543,7 +541,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             @Override
             public void run() {
                 //updateLocation();
-              //  button.performClick();
+                //  button.performClick();
             }
 
         }, 0, 1000);
@@ -563,82 +561,51 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         LatLng mecca = new LatLng(latitude[0],longitude[0]);
 
 
-           // sydney[i] = new LatLng(latitude[0], longitude[0]);
-            boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-            System.out.println("contains1: " + contains1);
+        // sydney[i] = new LatLng(latitude[0], longitude[0]);
+        boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
+        System.out.println("contains1: " + contains1);
 
 
-            MarkerOptions markerOptions = new MarkerOptions() ;
-            ArrayList<LatLng> latlngs = new ArrayList<>();
-            for (int i = 0; i < total; i ++) {
-                latlngs.add(new LatLng(latitude[i],longitude[i]));
-                mecca  = new LatLng(latitude[i],longitude[i]);
+        MarkerOptions markerOptions = new MarkerOptions() ;
+        ArrayList<LatLng> latlngs = new ArrayList<>();
+        for (int i = 0; i < total; i ++) {
+            latlngs.add(new LatLng(latitude[i],longitude[i]));
+            mecca  = new LatLng(latitude[i],longitude[i]);
 
-            }
-
-                for (int i = 0; i < total; i ++) {
-                    LatLng point = new LatLng(latitude[i],longitude[i]);
-                    markerOptions.position(point);
-                    markerOptions.title(user[i]);
-                    markerOptions.snippet(jamaah[i]);
-                    if (jamaah[i].equalsIgnoreCase("Pria")){
-                        mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
-                        //mMap.addMarker(markerOptions);
-                    }
-                    else
-                    {
-                        mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
-                    }
-                }
-            mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.BLUE));
-            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(mecca, 17);
-            mMap.animateCamera(cameraUpdate);
-           // mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
         }
 
-
-
-        //Toast.makeText(getApplicationContext(), latitude+"----"+longitude,Toast.LENGTH_SHORT).show();
-
-
-
-
-
-    @Override
-    public void onLocationChanged(Location location) {
-        startTimer();
-
-
+        for (int i = 0; i < total; i ++) {
+            LatLng point = new LatLng(latitude[i],longitude[i]);
+            markerOptions.position(point);
+            markerOptions.title(user[i]);
+            markerOptions.snippet(jamaah[i]);
+            if (jamaah[i].equalsIgnoreCase("Pria")){
+                mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
+                //mMap.addMarker(markerOptions);
+            }
+            else
+            {
+                mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
+            }
+        }
+        mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.BLUE));
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(mecca, 17);
+        mMap.animateCamera(cameraUpdate);
+        // mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.RED));
     }
 
-    @Override
-    public void onStatusChanged(String s, int i, Bundle bundle) {
-
+    /**
+     * This interface must be implemented by activities that contain this
+     * fragment to allow an interaction in this fragment to be communicated
+     * to the activity and potentially other fragments contained in that
+     * activity.
+     * <p>
+     * See the Android Training lesson <a href=
+     * "http://developer.android.com/training/basics/fragments/communicating.html"
+     * >Communicating with Other Fragments</a> for more information.
+     */
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        void onFragmentInteraction(Uri uri);
     }
-
-    @Override
-    public void onProviderEnabled(String s) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String s) {
-
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        startTimer();
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-
 }

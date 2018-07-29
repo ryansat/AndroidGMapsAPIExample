@@ -52,19 +52,17 @@
         </activity>
         <activity
             android:name=".MapsActivity"
-            android:label="@string/title_activity_maps">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:label="@string/title_activity_maps" />
         <activity
             android:name=".getUserLocation"
             android:label="@string/title_activity_get_user_location" />
         <activity
             android:name=".GetBoundMaps"
-            android:label="@string/title_activity_get_bound_maps"></activity>
+            android:label="@string/title_activity_get_bound_maps" />
+        <activity
+            android:name=".RegisterUser"
+            android:label="@string/title_activity_register_user"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

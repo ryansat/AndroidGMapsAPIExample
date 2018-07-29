@@ -61,6 +61,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
     public float lat;
     public float lng;
     public Locations loc;
+    public String userid;
     //private FusedLocationProviderClient mFusedLocationClient;
 
     @Override
@@ -88,8 +89,9 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 10);
                 mMap.animateCamera(cameraUpdate);
                 */
+                userid = getIntent().getStringExtra("USERID");
                 loc = new Locations();
-                loc.setId("1");
+                loc.setId(userid);
                 loc.setLatitude(String.valueOf(lat));
                 loc.setLongitude(String.valueOf(lng));
                 new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
@@ -276,7 +278,8 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         LatLng latLng = new LatLng(lat,lng);
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
         loc = new Locations();
-        loc.setId("1");
+        userid = getIntent().getStringExtra("USERID");
+        loc.setId(userid);
         loc.setLatitude(String.valueOf(lat));
         loc.setLongitude(String.valueOf(lng));
         new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);

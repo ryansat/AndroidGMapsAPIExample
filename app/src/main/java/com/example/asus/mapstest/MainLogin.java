@@ -63,12 +63,13 @@ import static android.Manifest.permission.READ_CONTACTS;
  * A login screen that offers login via email/password.
  */
 public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Cursor> {
-    private String url = "http://satriaworlds.net/maps/listuser.php";
+    private String url = "http://satriaworlds.net/maps/tampilusers.php";
     private JSONObject jObject;
     private String xResult = "";
     public String username,password;
     Context context;
     AlertDialog alertDialog;
+    public String userid,jabatan;
     //context = ctx;
     /**
      * Id to identity READ_CONTACTS permission request.
@@ -141,17 +142,17 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
 
     private void parse() throws Exception {
         jObject = new JSONObject(xResult);
-        JSONArray menuitemArray = jObject.getJSONArray("lokasi");
+        JSONArray menuitemArray = jObject.getJSONArray("users");
         String sret="";
         for (int i = 0; i < menuitemArray.length(); i++) {
 
-            sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+" : ";
-            System.out.println(menuitemArray.getJSONObject(i).getString("username").toString());
-            System.out.println(menuitemArray.getJSONObject(i).getString("password").toString());
-            sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
+            //sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+" : ";
+            //System.out.println(menuitemArray.getJSONObject(i).getString("username").toString());
+            //System.out.println(menuitemArray.getJSONObject(i).getString("password").toString());
+            //sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
 
-            username = menuitemArray.getJSONObject(i).getString("username").toString();
-            password = menuitemArray.getJSONObject(i).getString("password").toString();
+            userid = menuitemArray.getJSONObject(i).getString("userid").toString();
+            jabatan = menuitemArray.getJSONObject(i).getString("jabatan").toString();
             // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
             //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
         }
@@ -304,16 +305,23 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
 
             //mAuthTask = new UserLoginTask(email, password);
             //mAuthTask.execute((Void) null);
-            if (result.equalsIgnoreCase("sukses")) {
+            if (result == "failed") {
+               // showProgress(false);
+                //Toast.makeText(getApplicationContext(), "Login Gagal",Toast.LENGTH_SHORT).show();
                 showProgress(true);
-                Toast.makeText(getApplicationContext(), "Login Sukses",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "Login Sukses User " + email,Toast.LENGTH_SHORT).show();
                 Intent a = new Intent(this, Main_Menu.class);
+                a.putExtra("USERID", result);
                 startActivity(a);
             }
             else
             {
-                showProgress(false);
-                Toast.makeText(getApplicationContext(), "Login Gagal",Toast.LENGTH_SHORT).show();
+
+                showProgress(true);
+                Toast.makeText(getApplicationContext(), "Login Sukses User " + email,Toast.LENGTH_SHORT).show();
+                Intent a = new Intent(this, Main_Menu.class);
+                a.putExtra("USERID", result);
+                startActivity(a);
 
             }
 
