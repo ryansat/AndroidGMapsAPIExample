@@ -257,8 +257,9 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
 
 
                 // sydney[i] = new LatLng(latitude[0], longitude[0]);
-                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-                System.out.println("contains1: " + contains1);
+                //boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
+                //System.out.println("contains1: " + contains1);
+                //System.out.println("contains1: " + contains1);
 
 
                 MarkerOptions markerOptions = new MarkerOptions() ;
@@ -284,6 +285,59 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
                     {
                         mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.woman)));
                     }
+                }
+                try{
+                for (int i = 0; i < total; i ++) {
+                    boolean contains1 = PolyUtil.containsLocation(latitude[i], longitude[i], pts, true);
+                    latlngs.add(new LatLng(latitude[i],longitude[i]));
+                    mecca  = new LatLng(latitude[i],longitude[i]);
+                    //Toast.makeText(getApplicationContext(),"Lokasi User: "+ jamaah[i]+ ", " + contains1,Toast.LENGTH_SHORT).show();
+                    String idChannel = "my_channel_01";
+                    Intent mainIntent;
+
+                    mainIntent = new Intent(getContext(), LauncherActivity.class);
+
+                    PendingIntent pendingIntent = PendingIntent.getActivity(getContext(), 0, mainIntent, 0);
+
+                    NotificationManager mNotificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+
+                    NotificationChannel mChannel = null;
+                    // The id of the channel.
+
+                    int importance = NotificationManager.IMPORTANCE_HIGH;
+
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getContext(), PRIMARY_CHANNEL);
+
+                    if (contains1 == false) {
+                        builder.setContentTitle(getContext().getString(R.string.app_name))
+                                .setSmallIcon(R.drawable.person)
+                                .setContentIntent(pendingIntent)
+                                .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        mChannel = new NotificationChannel(PRIMARY_CHANNEL, getContext().getString(R.string.app_name), importance);
+                        // Configure the notification channel.
+                        mChannel.setDescription(("Notif"));
+                        mChannel.enableLights(true);
+                        mChannel.setLightColor(Color.WHITE);
+                        mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                        mNotificationManager.createNotificationChannel(mChannel);
+                    } else {
+                        builder.setContentTitle(getContext().getString(R.string.app_name))
+                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
+                                .setVibrate(new long[]{100, 250})
+                                .setLights(Color.YELLOW, 500, 5000)
+                                .setAutoCancel(true);
+                    }
+                    mNotificationManager.notify(i, builder.build());
+
+
+
+                }}
+                catch (Exception e){
+
                 }
 
                 mecca  = new LatLng(latitude[ids],longitude[ids]);
