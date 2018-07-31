@@ -368,16 +368,6 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
                                     Marker location;
                                     mMap.clear();
                                     List<LatLng> pts = new ArrayList<>();
-                            /*pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            */
-                            /*
-                            pts.add(new LatLng(21.426717,39.8170513 ));
-                            pts.add(new LatLng(21.426954, 39.830096));
-                            pts.add(new LatLng(21.421716, 39.832523));
-                            pts.add(new LatLng(21.422560, 39.821529));*/
                                     pts.add(new LatLng(21.426117,39.8170513 ));
                                     pts.add(new LatLng(21.426954, 39.830096));
                                     pts.add(new LatLng(21.421716, 39.832523));

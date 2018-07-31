@@ -93,7 +93,7 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    private String result;
+    private String result,output;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -306,22 +306,65 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
             //mAuthTask = new UserLoginTask(email, password);
             //mAuthTask.execute((Void) null);
             if (result == "failed") {
-               // showProgress(false);
-                //Toast.makeText(getApplicationContext(), "Login Gagal",Toast.LENGTH_SHORT).show();
-                showProgress(true);
-                Toast.makeText(getApplicationContext(), "Login Sukses User " + email,Toast.LENGTH_SHORT).show();
-                Intent a = new Intent(this, Main_Menu.class);
-                a.putExtra("USERID", result);
-                startActivity(a);
+                showProgress(false);
+                Toast.makeText(getApplicationContext(), "Login Gagal",Toast.LENGTH_SHORT).show();
+                //showProgress(true);
+                //Toast.makeText(getApplicationContext(), "Login Sukses User " + email,Toast.LENGTH_SHORT).show();
+                //Intent a = new Intent(this, Main_Menu.class);
+                //a.putExtra("USERID", result);
+                //startActivity(a);
             }
             else
             {
-
-                showProgress(true);
-                Toast.makeText(getApplicationContext(), "Login Sukses User " + email,Toast.LENGTH_SHORT).show();
-                Intent a = new Intent(this, Main_Menu.class);
-                a.putExtra("USERID", result);
-                startActivity(a);
+                //get access of user
+                login_url = "http://satriaworlds.net/maps/getaccess.php";
+                try {
+                    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                    StrictMode.setThreadPolicy(policy);
+                    String user_name = email;
+                    String pswd = password;
+                    URL url = new URL(login_url);
+                    HttpURLConnection httpURLConnection = (HttpURLConnection)url.openConnection();
+                    httpURLConnection.setRequestMethod("POST");
+                    httpURLConnection.setDoOutput(true);
+                    httpURLConnection.setDoInput(true);
+                    OutputStream outputStream = httpURLConnection.getOutputStream();
+                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                    String post_data = URLEncoder.encode("username","UTF-8")+"="+URLEncoder.encode(user_name,"UTF-8")+"&"
+                            +URLEncoder.encode("password","UTF-8")+"="+URLEncoder.encode(password,"UTF-8");
+                    bufferedWriter.write(post_data);
+                    bufferedWriter.flush();
+                    bufferedWriter.close();
+                    outputStream.close();
+                    InputStream inputStream = httpURLConnection.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream,"iso-8859-1"));
+                    output="";
+                    String line="";
+                    while((line = bufferedReader.readLine())!= null) {
+                        output += line;
+                    }
+                    bufferedReader.close();
+                    inputStream.close();
+                    httpURLConnection.disconnect();
+                    //return result;
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                if (output.equalsIgnoreCase("Admin")) {
+                    showProgress(true);
+                    Toast.makeText(getApplicationContext(), "Login Sukses User " + email, Toast.LENGTH_SHORT).show();
+                    Intent a = new Intent(this, Main_Menu.class);
+                    a.putExtra("USERID", result);
+                    startActivity(a);
+                }else{
+                    showProgress(true);
+                    Toast.makeText(getApplicationContext(), "Login Sukses User " + email, Toast.LENGTH_SHORT).show();
+                    Intent a = new Intent(this, UserActivity.class);
+                    a.putExtra("USERID", result);
+                    startActivity(a);
+                }
 
             }
 

@@ -94,7 +94,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
                 loc.setId(userid);
                 loc.setLatitude(String.valueOf(lat));
                 loc.setLongitude(String.valueOf(lng));
-                new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
+                new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng);
             }
         });
        // onMyLocationButtonClick();
@@ -176,7 +176,9 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         }
         @Override
         protected void onPostExecute(String result) {
-            Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(),"User : "+ userid + ", Lat : "+lat+", Long : "+lng,Toast.LENGTH_SHORT).show();
+           // Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+
         }
     }
     //@SuppressLint("MissingPermission")
@@ -240,12 +242,14 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         double longitude = location.getLongitude();
         double latitude = location.getLatitude();
         lokasi = location;
-        Toast.makeText(this, "Current longitude:\n" + longitude + "\n Current latitude:\n" + latitude, Toast.LENGTH_LONG).show();
+       // Toast.makeText(this, "Current longitude:\n" + longitude + "\n Current latitude:\n" + latitude, Toast.LENGTH_LONG).show();
+        Toast.makeText(this,"User : "+ userid + ", Lat : "+lat+", Long : "+lng,Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public boolean onMyLocationButtonClick() {
-        Toast.makeText(this, "Get Location", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Get Location", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this,"User : "+ userid + ", Lat : "+lat+", Long : "+lng,Toast.LENGTH_SHORT).show();
         return false;
     }
 
@@ -282,7 +286,8 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         loc.setId(userid);
         loc.setLatitude(String.valueOf(lat));
         loc.setLongitude(String.valueOf(lng));
-        new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id=1&latitude="+lat+"&longitude="+lng);
+        new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng);
+        Toast.makeText(this,"User : "+ userid + ", Lat : "+lat+", Long : "+lng,Toast.LENGTH_SHORT).show();
 
 
     }
