@@ -11,11 +11,12 @@ while ($r = mysqli_fetch_assoc($result)) {
 $data = $r['userid'];
 }
 if ($data <> ""){
-//$data = "sukses";
-echo $data;
+echo "login success";
+header("Location: http://satriaworlds.net/maps/cobamaps.php");
+exit;
 }
 else{
-echo "failed";
+echo "login failed";
 //echo $data;
 }
 ?>

@@ -1,21 +1,12 @@
 <?php
-$username = $_POST['username'];
-$pwd = $_POST['password'];
-$data = "";
 $link = mysqli_connect('localhost', 'fajar', 'p@ssw0rd') or die('Cannot connect to the DB');
 mysqli_select_db($link, 'db_lokasi')  or die("Could not select examples"); 
-$query = "SELECT * FROM users where username='".$username."' and password='".$pwd."'";
+$query = "SELECT * FROM users";
 $result =  mysqli_query($link,$query) or die('Errorquery: '.$query);
 $rows = array();
 while ($r = mysqli_fetch_assoc($result)) {
-$data = $r['userid'];
+$rows[] = $r;
 }
-if ($data <> ""){
-//$data = "sukses";
+$data = "{users:".json_encode($rows)."}";
 echo $data;
-}
-else{
-echo "failed";
-//echo $data;
-}
 ?>
