@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,6 +22,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -44,12 +46,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
@@ -69,6 +74,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private Marker locations;
     private NotificationHelper noti;
     private GoogleMap mMap;
+    public Locations loc;
     public String notif = "Notifikasi";
     private static final int NOTI_PRIMARY1 = 1100;
     private static final int NOTI_PRIMARY2 = 1101;
@@ -108,6 +114,8 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private NotificationManager manager;
     private transient LocationManager locationManager;
     private transient LocationListener locationListener;
+    public boolean[] isupdated =  new boolean[total];
+    public String httpurls;
 
     //final Handler handler = new Handler();
     @Override
@@ -248,30 +256,43 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
                                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), PRIMARY_CHANNEL);
 
-                                if (contains1 == false) {
+                                if (contains1 == false)
+                                {
                                     builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
                                             .setSmallIcon(R.drawable.person)
                                             .setContentIntent(pendingIntent)
                                             .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
-                                }
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                        mChannel = new NotificationChannel(PRIMARY_CHANNEL, getApplicationContext().getString(R.string.app_name), importance);
+                                        // Configure the notification channel.
+                                        mChannel.setDescription(("Notif"));
+                                        mChannel.enableLights(true);
+                                        mChannel.setLightColor(Color.WHITE);
+                                        mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                                        mNotificationManager.createNotificationChannel(mChannel);
+                                    } else {
+                                        builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                                                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                                                //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
+                                                .setVibrate(new long[]{100, 250})
+                                                .setLights(Color.YELLOW, 500, 5000)
+                                                .setAutoCancel(true);
+                                    }
+                                    if (isupdated[i] == true)
 
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                    mChannel = new NotificationChannel(PRIMARY_CHANNEL, getApplicationContext().getString(R.string.app_name), importance);
-                                    // Configure the notification channel.
-                                    mChannel.setDescription(("Notif"));
-                                    mChannel.enableLights(true);
-                                    mChannel.setLightColor(Color.WHITE);
-                                    mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-                                    mNotificationManager.createNotificationChannel(mChannel);
-                                } else {
-                                    builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
-                                            .setPriority(NotificationCompat.PRIORITY_HIGH)
-                                            //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
-                                            .setVibrate(new long[]{100, 250})
-                                            .setLights(Color.YELLOW, 500, 5000)
-                                            .setAutoCancel(true);
+                                    {
+                                        int newisupdated = 0;
+                                        String urls;
+                                        mNotificationManager.notify(i, builder.build());
+                                        urls = "http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated;
+                                        loc = new Locations();
+                                        loc.setId(user[i]);
+                                        loc.setpdated(newisupdated);
+                                        new getUserLocation.HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated);
+                                        //Toast.makeText(this,"User : "+ user[i] + ", Isupdated : "+newisupdated,Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getApplicationContext(),"User : "+ user[i] + ", Isupdated : "+newisupdated,Toast.LENGTH_SHORT).show();
+                                    }
                                 }
-                                mNotificationManager.notify(i, builder.build());
 
 
 
@@ -386,30 +407,44 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), PRIMARY_CHANNEL);
 
-            if (contains1 == false) {
+            if (contains1 == false)
+            {
                 builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
                         .setSmallIcon(R.drawable.person)
                         .setContentIntent(pendingIntent)
                         .setContentText("Jamaah "+ jamaah[i]+" Telah Keluar Area");
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    mChannel = new NotificationChannel(PRIMARY_CHANNEL, getApplicationContext().getString(R.string.app_name), importance);
+                    // Configure the notification channel.
+                    mChannel.setDescription(("Notif"));
+                    mChannel.enableLights(true);
+                    mChannel.setLightColor(Color.WHITE);
+                    mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+                    mNotificationManager.createNotificationChannel(mChannel);
+                } else {
+                    builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
+                            .setPriority(NotificationCompat.PRIORITY_HIGH)
+                            //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
+                            .setVibrate(new long[]{100, 250})
+                            .setLights(Color.YELLOW, 500, 5000)
+                            .setAutoCancel(true);
+                }
+                if (isupdated[i] == true)
+
+                {
+                    int newisupdated = 0;
+                    String urls;
+                    mNotificationManager.notify(i, builder.build());
+                    urls = "http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated;
+                    loc = new Locations();
+                    loc.setId(user[i]);
+                    loc.setpdated(newisupdated);
+                    new getUserLocation.HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated);
+                    Toast.makeText(this,"User : "+ user[i] + ", Isupdated : "+newisupdated,Toast.LENGTH_SHORT).show();
+                }
             }
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mChannel = new NotificationChannel(PRIMARY_CHANNEL, getApplicationContext().getString(R.string.app_name), importance);
-                // Configure the notification channel.
-                mChannel.setDescription(("Notif"));
-                mChannel.enableLights(true);
-                mChannel.setLightColor(Color.WHITE);
-                mChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-                mNotificationManager.createNotificationChannel(mChannel);
-            } else {
-                builder.setContentTitle(getApplicationContext().getString(R.string.app_name))
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        //.setColor(getApplicationContext().getColor(getApplicationContext(), R.color.transparent))
-                        .setVibrate(new long[]{100, 250})
-                        .setLights(Color.YELLOW, 500, 5000)
-                        .setAutoCancel(true);
-            }
-            mNotificationManager.notify(i, builder.build());
+
 
 
 
@@ -454,6 +489,14 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
             user[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("userid").toString());
             jamaah[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("jamaah").toString());
             jeniskelamin[i] = String.valueOf(menuitemArray.getJSONObject(i).getString("jeniskelamin").toString());
+            if (String.valueOf(menuitemArray.getJSONObject(i).getString("isupdated").toString()).equalsIgnoreCase("1"))
+                {
+                    isupdated[i] = true;
+                }
+            else
+                {
+                    isupdated[i] = false;
+                }
            // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
             //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
         }
@@ -561,7 +604,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                     markerOptions.position(point);
                     markerOptions.title(user[i]);
                     markerOptions.snippet(jamaah[i]);
-                    if (jamaah[i].equalsIgnoreCase("Pria")){
+                    if (jeniskelamin[i].equalsIgnoreCase("Pria")){
                         mMap.addMarker(markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.person)));
                         //mMap.addMarker(markerOptions);
                     }
@@ -620,5 +663,85 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
+    public static String POST(String url, Locations loc){
+        InputStream inputStream = null;
+        String result = "";
+        try {
+
+            // 1. create HttpClient
+            HttpClient httpclient = new DefaultHttpClient();
+
+            // 2. make POST request to the given URL
+            HttpPost httpPost = new HttpPost(url);
+
+            String json = "";
+
+            // 3. build jsonObject
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.accumulate("id", loc.getIDS());
+            jsonObject.accumulate("updatestatus", loc.getUpdate());
+
+
+
+            // 4. convert JSONObject to JSON to String
+            json = jsonObject.toString();
+
+            // 5. set json to StringEntity
+            StringEntity se = new StringEntity(json);
+
+            // 6. set httpPost Entity
+            httpPost.setEntity(se);
+
+            // 7. Set some headers to inform server about the type of the content
+            httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-type", "application/json");
+
+            // 8. Execute POST request to the given URL
+            HttpResponse httpResponse = httpclient.execute(httpPost);
+
+            // 9. receive response as inputStream
+            inputStream = httpResponse.getEntity().getContent();
+
+            // 10. convert inputstream to string
+            if(inputStream != null)
+                result = convertInputStreamToString(inputStream);
+            else
+                result = "Did not work!";
+
+        } catch (Exception e) {
+            Log.d("InputStream", e.getLocalizedMessage());
+        }
+
+        // 11. return result
+        return result;
+    }
+
+    private class HttpAsyncTaskPost extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... url) {
+            return POST(url[0], loc);
+        }
+        @Override
+        protected void onPostExecute(String result) {
+           // Toast.makeText(getApplicationContext(),"User : "+ userid + ", Lat : "+lat+", Long : "+lng,Toast.LENGTH_SHORT).show();
+             Toast.makeText(getBaseContext(), "Data Sent!", Toast.LENGTH_LONG).show();
+
+        }
+    }
+
+    private static String convertInputStreamToString(InputStream inputStream) throws IOException {
+        BufferedReader bufferedReader = new BufferedReader( new InputStreamReader(inputStream));
+        String line = "";
+        String result = "";
+        while((line = bufferedReader.readLine()) != null)
+            result += line;
+        inputStream.close();
+        return result;
+    }
+
+
+
+
 
 }

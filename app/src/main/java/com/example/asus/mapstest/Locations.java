@@ -4,6 +4,7 @@ public class Locations {
     private String ids;
     private String longitude;
     private String latitude;
+    private int isupdated;
 
     public String getIDS()
     {
@@ -30,8 +31,18 @@ public class Locations {
         return latitude;
     }
 
-    public void setLatitude(String sinopsis)
+    public void setLatitude(String latitude)
     {
         this.latitude = latitude;
+    }
+
+    public int getUpdate()
+    {
+        return isupdated;
+    }
+
+    public void setpdated(int isupdated)
+    {
+        this.isupdated = isupdated;
     }
 }

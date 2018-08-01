@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jul 31, 2018 at 09:57 AM
+-- Generation Time: Aug 01, 2018 at 12:16 PM
 -- Server version: 5.6.39-cll-lve
 -- PHP Version: 5.6.30
 
@@ -33,17 +33,18 @@ CREATE TABLE `lokasi` (
   `jamaah` varchar(200) NOT NULL,
   `jeniskelamin` varchar(100) NOT NULL,
   `longitude` double NOT NULL,
-  `latitude` double NOT NULL
+  `latitude` double NOT NULL,
+  `isupdated` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `lokasi`
 --
 
-INSERT INTO `lokasi` (`userid`, `jamaah`, `jeniskelamin`, `longitude`, `latitude`) VALUES
-('1', 'Budi', 'Pria', 39.8273665, 21.4226896),
-('2', 'Mirna', 'Wanita', 112.71292, -7.3143034),
-('3', 'Fajar', 'Pria', 112.75469, -7.2983823);
+INSERT INTO `lokasi` (`userid`, `jamaah`, `jeniskelamin`, `longitude`, `latitude`, `isupdated`) VALUES
+('1', 'Budi', 'Pria', 112.71286, -7.3142567, 0),
+('2', 'Mirna', 'Wanita', 112.71292, -7.3143034, 0),
+('3', 'Fajar', 'Pria', 112.75469, -7.2983823, 0);
 
 -- --------------------------------------------------------
 

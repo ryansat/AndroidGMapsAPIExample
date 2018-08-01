@@ -60,6 +60,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
     private String provider;
     public float lat;
     public float lng;
+    public boolean isupdated = false;
     public Locations loc;
     public String userid;
     //private FusedLocationProviderClient mFusedLocationClient;
@@ -94,7 +95,8 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
                 loc.setId(userid);
                 loc.setLatitude(String.valueOf(lat));
                 loc.setLongitude(String.valueOf(lng));
-                new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng);
+                //new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng);
+                new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng+"&isupdated="+isupdated);
             }
         });
        // onMyLocationButtonClick();
@@ -130,9 +132,10 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
 
             // 3. build jsonObject
             JSONObject jsonObject = new JSONObject();
-            jsonObject.accumulate("title", loc.getIDS());
-            jsonObject.accumulate("author", loc.getLongitude());
-            jsonObject.accumulate("sinopsis", loc.getLatitude());
+            jsonObject.accumulate("id", loc.getIDS());
+            jsonObject.accumulate("longitude", loc.getLongitude());
+            jsonObject.accumulate("latitude", loc.getLatitude());
+            jsonObject.accumulate("updatestatus", loc.getUpdate());
 
 
 
@@ -210,6 +213,7 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         Toast.makeText(getApplicationContext(), lat+"----"+lng,Toast.LENGTH_LONG).show();
         Log.i("Latitude", "Lattitude:" +lat);
         Log.i("Longitude", "Longitude:" +lng);
+        Log.i("Location Update", "is True:" +isupdated);
         LatLng latLng = new LatLng(lat,lng);
         LatLng sydney = new LatLng(lat, lng);
         mMap.clear();
@@ -283,10 +287,11 @@ public class MapsActivity extends FragmentActivity implements GoogleMap.OnMyLoca
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
         loc = new Locations();
         userid = getIntent().getStringExtra("USERID");
+        isupdated = true;
         loc.setId(userid);
         loc.setLatitude(String.valueOf(lat));
         loc.setLongitude(String.valueOf(lng));
-        new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng);
+        new HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/tambah.php?id="+userid+"&latitude="+lat+"&longitude="+lng+"&isupdated="+isupdated);
         Toast.makeText(this,"User : "+ userid + ", Lat : "+lat+", Long : "+lng,Toast.LENGTH_SHORT).show();
 
 

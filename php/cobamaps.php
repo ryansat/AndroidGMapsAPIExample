@@ -18,7 +18,7 @@
     </style>
   </head>
 
-  <body onload="load()">
+  <body>
     <div id="map"></div>
 
     <script>
@@ -109,10 +109,7 @@
 
       function doNothing() {}
       
-      function load()
-	{
-	setTimeout("window.open(self.location, '_self');", 10000);
-	}
+      
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQIF13GHt19dL869dIg5FMWllcLL7CRDY&callback=initMap">
