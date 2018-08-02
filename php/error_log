@@ -172,3 +172,5 @@ Stack trace:
 [31-Jul-2018 15:43:58 UTC] PHP Parse error:  syntax error, unexpected 'login' (T_STRING), expecting ',' or ')' in /home/a5bufrruxt5a/public_html/maps/home.php on line 19
 [31-Jul-2018 15:45:09 UTC] PHP Notice:  Undefined index: username in /home/a5bufrruxt5a/public_html/maps/home.php on line 2
 [31-Jul-2018 15:45:09 UTC] PHP Notice:  Undefined index: password in /home/a5bufrruxt5a/public_html/maps/home.php on line 3
+[02-Aug-2018 05:11:08 UTC] PHP Notice:  Undefined index: username in /home/a5bufrruxt5a/public_html/maps/getcallcenter.php on line 2
+[02-Aug-2018 05:11:08 UTC] PHP Notice:  Undefined index: password in /home/a5bufrruxt5a/public_html/maps/getcallcenter.php on line 3

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Aug 01, 2018 at 11:07 PM
+-- Generation Time: Aug 02, 2018 at 03:51 AM
 -- Server version: 5.6.39-cll-lve
 -- PHP Version: 5.6.30
 
@@ -25,6 +25,28 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `boundary`
+--
+
+CREATE TABLE `boundary` (
+  `id` int(11) NOT NULL,
+  `latitude` double NOT NULL,
+  `longitude` double NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `boundary`
+--
+
+INSERT INTO `boundary` (`id`, `latitude`, `longitude`) VALUES
+(1, 21.426117, 39.8170513),
+(2, 21.426954, 39.830096),
+(3, 21.421716, 39.832523),
+(4, 21.42256, 39.821529);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `callcenter`
 --
 
@@ -38,7 +60,7 @@ CREATE TABLE `callcenter` (
 --
 
 INSERT INTO `callcenter` (`id`, `number`) VALUES
-(1, '085648757246');
+(1, '081330018291');
 
 -- --------------------------------------------------------
 
@@ -60,7 +82,7 @@ CREATE TABLE `lokasi` (
 --
 
 INSERT INTO `lokasi` (`userid`, `jamaah`, `jeniskelamin`, `longitude`, `latitude`, `isupdated`) VALUES
-('1', 'Budi', 'Pria', 112.723564, -7.331326, 0),
+('1', 'Budi', 'Pria', 112.737114, -7.3043284, 0),
 ('2', 'Mirna', 'Wanita', 112.71292, -7.3143034, 0),
 ('3', 'Fajar', 'Pria', 112.75469, -7.2983823, 0);
 
@@ -93,6 +115,12 @@ INSERT INTO `users` (`userid`, `username`, `password`, `jabatan`, `user`) VALUES
 --
 
 --
+-- Indexes for table `boundary`
+--
+ALTER TABLE `boundary`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `callcenter`
 --
 ALTER TABLE `callcenter`
@@ -113,6 +141,12 @@ ALTER TABLE `users`
 --
 -- AUTO_INCREMENT for dumped tables
 --
+
+--
+-- AUTO_INCREMENT for table `boundary`
+--
+ALTER TABLE `boundary`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `callcenter`
