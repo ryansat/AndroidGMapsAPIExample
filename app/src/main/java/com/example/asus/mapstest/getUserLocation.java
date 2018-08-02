@@ -1,5 +1,6 @@
 package com.example.asus.mapstest;
 
+import android.Manifest;
 import android.app.LauncherActivity;
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -7,6 +8,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
@@ -22,6 +24,7 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -54,9 +57,16 @@ import org.json.JSONObject;
 import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Timer;
@@ -81,8 +91,10 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private static final int NOTI_SECONDARY1 = 1200;
     private static final int NOTI_SECONDARY2 = 1201;
     private LatLngBounds bounds;
+
     LatLng citys;
     private String xResult = "";
+    private String xResultBoundary = "";
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
@@ -93,14 +105,22 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     public String[] user  =  new String[total];
     public String[] jamaah  =  new String[total];
     public String[] jeniskelamin  =  new String[total];
-    //final Handler handler = new Handler();
+
+    //for boundary
+    public int boundary = 4;
+    public int[] idboundary = new int[boundary];
+    public double[] longitudeboundary =  new double[boundary];
+    public double[] latitudeboundary  =  new double[boundary];
+
     LocationCallback mLocationCallback;
     private Timer myTimer;
     //Seusuaikan url dengan nama domain yang anda gunakan
     //private String url = "http://satriaworld.000webhostapp.com/android/daftarmakanan.php";
     private String url = "http://satriaworlds.net/maps/listdata.php";
+    private String urlBoundary = "http://satriaworlds.net/maps/listboundary.php";
     private JSONObject jObject;
     public List<LatLng> pts;
+    public String output;
     Button button;
     Timer timer;
     TimerTask timerTask;
@@ -116,6 +136,9 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private transient LocationListener locationListener;
     public boolean[] isupdated =  new boolean[total];
     public String httpurls;
+    private static final int PERMISSION_REQUEST_CODE = 1;
+    public String[] callcenter = new String[1];
+
 
     //final Handler handler = new Handler();
     @Override
@@ -130,6 +153,13 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         } catch (Exception e) {
             e.printStackTrace();
         }
+        //get Json Boundary
+        xResultBoundary = getRequestBoundary(urlBoundary);
+        try {
+            parseBoundary();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -139,6 +169,45 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
 
     }
+
+    public void getCallcenter(){
+                    String login_url = "http://satriaworlds.net/maps/getcallcenter.php";
+
+                try {
+                    StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+                    StrictMode.setThreadPolicy(policy);
+                    String user_name = "1";
+                    String pswd = "1";
+                    URL url = new URL(login_url);
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestMethod("POST");
+                    httpURLConnection.setDoOutput(true);
+                    httpURLConnection.setDoInput(true);
+                    OutputStream outputStream = httpURLConnection.getOutputStream();
+                    BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+                    String post_data = URLEncoder.encode("username", "UTF-8") + "=" + URLEncoder.encode(user_name, "UTF-8") + "&"
+                            + URLEncoder.encode("password", "UTF-8") + "=" + URLEncoder.encode(pswd, "UTF-8");
+                    bufferedWriter.write(post_data);
+                    bufferedWriter.flush();
+                    bufferedWriter.close();
+                    outputStream.close();
+                    InputStream inputStream = httpURLConnection.getInputStream();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "iso-8859-1"));
+                    output = "";
+                    String line = "";
+                    while ((line = bufferedReader.readLine()) != null) {
+                        output += line;
+                    }
+                    callcenter[0] = output;
+                    bufferedReader.close();
+                    inputStream.close();
+                    httpURLConnection.disconnect();
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                }
 
     private NotificationManager getManager() {
         if (manager == null) {
@@ -199,17 +268,27 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd:MMMM:yyyy HH:mm:ss a");
                         final String strDate = simpleDateFormat.format(calendar.getTime());
                         xResult = getRequest(url);
+                        xResultBoundary = getRequestBoundary(url);
                         try {
 
                             parse();
+                            getCallcenter();
+
 
                             Marker location;
                             mMap.clear();
                             List<LatLng> pts = new ArrayList<>();
-                            pts.add(new LatLng(21.426117,39.8170513 ));
+                            for (int bound = 0; bound < boundary; bound++)
+                            {
+                                pts.add(new LatLng(latitudeboundary[bound],longitudeboundary[bound]));
+                            }
+
+                            /*
+                            pts.add(new LatLng(21.426117, 39.8170513));
                             pts.add(new LatLng(21.426954, 39.830096));
                             pts.add(new LatLng(21.421716, 39.832523));
                             pts.add(new LatLng(21.422560, 39.821529));
+                            */
 
 
                             bounds = new LatLngBounds(pts.get(2), pts.get(1));
@@ -291,6 +370,20 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                                         new getUserLocation.HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated);
                                         //Toast.makeText(this,"User : "+ user[i] + ", Isupdated : "+newisupdated,Toast.LENGTH_SHORT).show();
                                         Toast.makeText(getApplicationContext(),"User : "+ user[i] + ", Isupdated : "+newisupdated,Toast.LENGTH_SHORT).show();
+                                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+
+                                            if (checkSelfPermission(Manifest.permission.SEND_SMS)
+                                                    == PackageManager.PERMISSION_DENIED) {
+
+                                                Log.d("permission", "permission denied to SEND_SMS - requesting it");
+                                                String[] permissions = {Manifest.permission.SEND_SMS};
+
+                                                requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+
+                                            }
+                                        }
+                                        SmsManager smsManager = SmsManager.getDefault();
+                                        smsManager.sendTextMessage(callcenter[0], null, "User "+user[i]+" Telah Keluar Area", null, null);
                                     }
                                 }
 
@@ -337,35 +430,21 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         Marker location;
         mMap.clear();
         List<LatLng> pts = new ArrayList<>();
-                            /*pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            pts.add(new LatLng(112.723724, -7.3312397));
-                            pts.add(new LatLng(114.723724, -8.3312397));
-                            */
-                            /*
-                            pts.add(new LatLng(21.426717,39.8170513 ));
-                            pts.add(new LatLng(21.426954, 39.830096));
-                            pts.add(new LatLng(21.421716, 39.832523));
-                            pts.add(new LatLng(21.422560, 39.821529));*/
+
+        for (int bound = 0; bound < boundary; bound++)
+        {
+            pts.add(new LatLng(latitudeboundary[bound],longitudeboundary[bound]));
+        }
+        /*
         pts.add(new LatLng(21.426117,39.8170513 ));
         pts.add(new LatLng(21.426954, 39.830096));
         pts.add(new LatLng(21.421716, 39.832523));
         pts.add(new LatLng(21.422560, 39.821529));
-
+        */
 
         bounds = new LatLngBounds(pts.get(2), pts.get(1));
         LatLng mecca = new LatLng(latitude[0],longitude[0]);
 
-
-        //bounds = new LatLngBounds(pts.get(2), pts.get(1));
-        //LatLng mecca = new LatLng(latitude[0],longitude[0]);
-
-
-        // sydney[i] = new LatLng(latitude[0], longitude[0]);
-                            /*for (int i = 0 ; i < total; i++) {
-                                boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-                                System.out.println("contains1: " + contains1);
-                            }*/
 
         MarkerOptions markerOptions = new MarkerOptions() ;
         ArrayList<LatLng> latlngs = new ArrayList<>();
@@ -435,12 +514,30 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                     int newisupdated = 0;
                     String urls;
                     mNotificationManager.notify(i, builder.build());
+                    //SmsManager smsManager = SmsManager.getDefault();
+                   // smsManager.sendTextMessage("085648757246", null, "User "+user[i]+" Telah Keluar Area", null, null);
                     urls = "http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated;
                     loc = new Locations();
                     loc.setId(user[i]);
                     loc.setpdated(newisupdated);
                     new getUserLocation.HttpAsyncTaskPost().execute("http://satriaworlds.net/maps/updatenotif.php?id="+user[i]+"&isupdated="+newisupdated);
                     Toast.makeText(this,"User : "+ user[i] + ", Isupdated : "+newisupdated,Toast.LENGTH_SHORT).show();
+
+
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+
+                        if (checkSelfPermission(Manifest.permission.SEND_SMS)
+                                == PackageManager.PERMISSION_DENIED) {
+
+                            Log.d("permission", "permission denied to SEND_SMS - requesting it");
+                            String[] permissions = {Manifest.permission.SEND_SMS};
+
+                            requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+
+                        }
+                    }
+                    SmsManager smsManager = SmsManager.getDefault();
+                    smsManager.sendTextMessage(callcenter[0], null, "User "+user[i]+" Telah Keluar Area", null, null);
                 }
             }
 
@@ -502,6 +599,31 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
         }
         //txtResult.setText(sret);
     }
+
+    //parsing boundary
+    private void parseBoundary() throws Exception {
+        jObject = new JSONObject(xResultBoundary);
+        JSONArray menuitemArray = jObject.getJSONArray("boundary");
+        String sret="";
+        for (int i = 0; i < menuitemArray.length(); i++) {
+
+            sret +=menuitemArray.getJSONObject(i).getString("id").toString()+" : ";
+            System.out.println(menuitemArray.getJSONObject(i).getString("id").toString());
+            System.out.println(menuitemArray.getJSONObject(i).getString("latitude").toString());
+            System.out.println(menuitemArray.getJSONObject(i).getString("longitude").toString());
+            sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
+            sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+"\n";
+
+
+            longitudeboundary[i] = Double.parseDouble(menuitemArray.getJSONObject(i).getString("longitude").toString());
+            latitudeboundary[i] = Double.parseDouble(menuitemArray.getJSONObject(i).getString("latitude").toString());
+            idboundary[i] = Integer.parseInt(menuitemArray.getJSONObject(i).getString("id").toString());
+
+            // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
+            //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
+        }
+        //txtResult.setText(sret);
+    }
     /**
      * Method untuk Mengirimkan data kes erver
      * event by button login diklik
@@ -509,6 +631,20 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
      */
     public String getRequest(String Url){
+        String sret="";
+        HttpClient client = new DefaultHttpClient();
+        HttpGet request = new HttpGet(Url);
+        try{
+            HttpResponse response = client.execute(request);
+            sret =request(response);
+        }catch(Exception ex){
+            Toast.makeText(this,"Gagal "+ex, Toast.LENGTH_SHORT).show();
+        }
+        return sret;
+    }
+
+
+    public String getRequestBoundary(String Url){
         String sret="";
         HttpClient client = new DefaultHttpClient();
         HttpGet request = new HttpGet(Url);

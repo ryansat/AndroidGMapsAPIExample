@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Aug 01, 2018 at 12:16 PM
+-- Generation Time: Aug 01, 2018 at 11:07 PM
 -- Server version: 5.6.39-cll-lve
 -- PHP Version: 5.6.30
 
@@ -25,6 +25,24 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `callcenter`
+--
+
+CREATE TABLE `callcenter` (
+  `id` int(11) NOT NULL,
+  `number` varchar(30) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `callcenter`
+--
+
+INSERT INTO `callcenter` (`id`, `number`) VALUES
+(1, '085648757246');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `lokasi`
 --
 
@@ -42,7 +60,7 @@ CREATE TABLE `lokasi` (
 --
 
 INSERT INTO `lokasi` (`userid`, `jamaah`, `jeniskelamin`, `longitude`, `latitude`, `isupdated`) VALUES
-('1', 'Budi', 'Pria', 112.71286, -7.3142567, 0),
+('1', 'Budi', 'Pria', 112.723564, -7.331326, 0),
 ('2', 'Mirna', 'Wanita', 112.71292, -7.3143034, 0),
 ('3', 'Fajar', 'Pria', 112.75469, -7.2983823, 0);
 
@@ -75,6 +93,12 @@ INSERT INTO `users` (`userid`, `username`, `password`, `jabatan`, `user`) VALUES
 --
 
 --
+-- Indexes for table `callcenter`
+--
+ALTER TABLE `callcenter`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `lokasi`
 --
 ALTER TABLE `lokasi`
@@ -85,6 +109,16 @@ ALTER TABLE `lokasi`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`userid`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `callcenter`
+--
+ALTER TABLE `callcenter`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

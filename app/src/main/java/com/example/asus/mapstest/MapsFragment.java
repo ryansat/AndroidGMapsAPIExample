@@ -95,6 +95,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
     private LatLngBounds bounds;
     LatLng citys;
     private String xResult = "";
+    private String xResultBoundary = "";
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
@@ -111,6 +112,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
     //Seusuaikan url dengan nama domain yang anda gunakan
     //private String url = "http://satriaworld.000webhostapp.com/android/daftarmakanan.php";
     private String url = "http://satriaworlds.net/maps/listdata.php";
+    private String urlBoundary = "http://satriaworlds.net/maps/listboundary.php";
     private JSONObject jObject;
     public List<LatLng> pts;
     Button button;
@@ -130,6 +132,12 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
     private GoogleMap googleMap;
     getUsers get;
     public String id;
+
+    //for boundary
+    public int boundary = 4;
+    public int[] idboundary = new int[boundary];
+    public double[] longitudeboundary =  new double[boundary];
+    public double[] latitudeboundary  =  new double[boundary];
 
     public MapsFragment() {
         // Required empty public constructor
@@ -214,6 +222,30 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
                 //txtResult.setText(sret);
             }
 
+            private void parseBoundary() throws Exception {
+                jObject = new JSONObject(xResultBoundary);
+                JSONArray menuitemArray = jObject.getJSONArray("boundary");
+                String sret="";
+                for (int i = 0; i < menuitemArray.length(); i++) {
+
+                    sret +=menuitemArray.getJSONObject(i).getString("id").toString()+" : ";
+                    System.out.println(menuitemArray.getJSONObject(i).getString("id").toString());
+                    System.out.println(menuitemArray.getJSONObject(i).getString("latitude").toString());
+                    System.out.println(menuitemArray.getJSONObject(i).getString("longitude").toString());
+                    sret +=menuitemArray.getJSONObject(i).getString("latitude").toString()+"\n";
+                    sret +=menuitemArray.getJSONObject(i).getString("longitude").toString()+"\n";
+
+
+                    longitudeboundary[i] = Double.parseDouble(menuitemArray.getJSONObject(i).getString("longitude").toString());
+                    latitudeboundary[i] = Double.parseDouble(menuitemArray.getJSONObject(i).getString("latitude").toString());
+                    idboundary[i] = Integer.parseInt(menuitemArray.getJSONObject(i).getString("id").toString());
+
+                    // longitude = (menuitemArray.getJSONObject(i).getString("longitude").toString());
+                    //Toast.makeText(getApplicationContext(), menuitemArray.getJSONObject(i).getString("longitude").toString()+"----"+menuitemArray.getJSONObject(i).getString("latitude").toString(),Toast.LENGTH_LONG).show();
+                }
+                //txtResult.setText(sret);
+            }
+
             public String getRequest(String Url){
                 String sret="";
                 HttpClient client = new DefaultHttpClient();
@@ -226,11 +258,26 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
                 }
                 return sret;
             }
+
+            public String getRequestBoundary(String Url){
+                String sret="";
+                HttpClient client = new DefaultHttpClient();
+                HttpGet request = new HttpGet(Url);
+                try{
+                    HttpResponse response = client.execute(request);
+                    sret =request(response);
+                }catch(Exception ex){
+                    Toast.makeText(getContext(),"Gagal "+ex, Toast.LENGTH_SHORT).show();
+                }
+                return sret;
+            }
             @Override
             public void onMapReady(GoogleMap googleMap) {
                 xResult = getRequest(url);
+                xResultBoundary = getRequestBoundary(url);
                 try {
                     parse();
+                    parseBoundary();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
