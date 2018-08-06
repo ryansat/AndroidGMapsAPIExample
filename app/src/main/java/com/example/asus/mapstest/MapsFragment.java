@@ -301,13 +301,7 @@ public class MapsFragment extends Fragment implements OnMapReadyCallback,GoogleA
 
                 bounds = new LatLngBounds(pts.get(2), pts.get(1));
                 LatLng mecca = new LatLng(latitude[0],longitude[0]);
-
-
-                // sydney[i] = new LatLng(latitude[0], longitude[0]);
-                //boolean contains1 = PolyUtil.containsLocation(latitude[0], longitude[0], pts, true);
-                //System.out.println("contains1: " + contains1);
-                //System.out.println("contains1: " + contains1);
-
+                
 
                 MarkerOptions markerOptions = new MarkerOptions() ;
                 ArrayList<LatLng> latlngs = new ArrayList<>();

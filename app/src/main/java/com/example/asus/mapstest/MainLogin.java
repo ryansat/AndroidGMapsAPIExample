@@ -354,17 +354,21 @@ public class MainLogin extends AppCompatActivity implements LoaderCallbacks<Curs
                 }
                 if (output.equalsIgnoreCase("Admin")) {
                     showProgress(true);
-                    Toast.makeText(getApplicationContext(), "Login Sukses User " + email, Toast.LENGTH_SHORT).show();
-                    Intent a = new Intent(this, Main_Menu.class);
+                    Toast.makeText(this, "Login Sukses User " + email, Toast.LENGTH_SHORT).show();
+                    Intent a = new Intent(getApplicationContext(), AdminActivity.class);
                     a.putExtra("USERID", result);
                     startActivity(a);
-                }else{
+                }else if (output.equalsIgnoreCase("User")){
                     showProgress(true);
                     Toast.makeText(getApplicationContext(), "Login Sukses User " + email, Toast.LENGTH_SHORT).show();
-                    Intent a = new Intent(this, UserActivity.class);
+                    Intent a = new Intent(getApplicationContext(), UserActivity.class);
                     a.putExtra("USERID", result);
                     startActivity(a);
                 }
+                else{
+                    Toast.makeText(getApplicationContext(), "Login Gagal ", Toast.LENGTH_SHORT).show();
+                }
+
 
             }
 
