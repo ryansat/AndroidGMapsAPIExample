@@ -91,7 +91,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private static final int NOTI_SECONDARY1 = 1200;
     private static final int NOTI_SECONDARY2 = 1201;
     private LatLngBounds bounds;
-
+    double latitude1,longitude1;
     LatLng citys;
     private String xResult = "";
     private String xResultBoundary = "";
@@ -99,7 +99,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
     private GoogleApiClient mGoogleApiClient;
     Location mLastLocation;
     Marker mCurrLocationMarker;
-    public int total =  3;
+    public int total =  3; //jumlah user
     public double[] longitude =  new double[total];
     public double[] latitude  =  new double[total];
     public String[] user  =  new String[total];
@@ -269,6 +269,7 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
                         final String strDate = simpleDateFormat.format(calendar.getTime());
                         xResult = getRequest(url);
                         xResultBoundary = getRequestBoundary(url);
+
                         try {
 
                             parse();
@@ -277,10 +278,17 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
                             Marker location;
                             mMap.clear();
+                            int bound = 0;
                             List<LatLng> pts = new ArrayList<>();
-                            for (int bound = 0; bound < boundary; bound++)
+                            for (; bound < boundary; bound++)
                             {
                                 pts.add(new LatLng(latitudeboundary[bound],longitudeboundary[bound]));
+                                if (bound == 1)
+                                {
+                                    latitude1 = latitudeboundary[bound];
+                                    longitude1 = longitudeboundary[bound];
+
+                                }
                             }
 
                             /*
@@ -391,7 +399,9 @@ public class getUserLocation extends FragmentActivity implements OnMapReadyCallb
 
                             }
                             mMap.addPolygon(new PolygonOptions().addAll(pts).strokeColor(Color.GREEN));
-                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(21.426717,39.8170513 ), 17);
+                            //CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(21.426717,39.8170513 ), 17);
+                            CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(new LatLng(latitude1,longitude1 ), 17);
+
                             mMap.animateCamera(cameraUpdate);
 
 
